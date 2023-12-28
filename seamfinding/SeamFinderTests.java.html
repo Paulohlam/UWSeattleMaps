@@ -1,0 +1,221 @@
+<html>
+<head>
+<title>SeamFinderTests.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #67a37c; font-style: italic;}
+.s5 { color: #2aacb8;}
+.s6 { color: #6aab73;}
+.s7 { color: #7a7e85;}
+.s8 { color: #68a67e; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+SeamFinderTests.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">seamfinding</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">org</span><span class="s2">.</span><span class="s1">junit</span><span class="s2">.</span><span class="s1">jupiter</span><span class="s2">.</span><span class="s1">api</span><span class="s2">.*;</span>
+<span class="s0">import </span><span class="s1">org</span><span class="s2">.</span><span class="s1">junit</span><span class="s2">.</span><span class="s1">jupiter</span><span class="s2">.</span><span class="s1">params</span><span class="s2">.</span><span class="s1">ParameterizedTest</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">org</span><span class="s2">.</span><span class="s1">junit</span><span class="s2">.</span><span class="s1">jupiter</span><span class="s2">.</span><span class="s1">params</span><span class="s2">.</span><span class="s1">provider</span><span class="s2">.</span><span class="s1">ValueSource</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">seamfinding</span><span class="s2">.</span><span class="s1">energy</span><span class="s2">.</span><span class="s1">DualGradientEnergyFunction</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">seamfinding</span><span class="s2">.</span><span class="s1">energy</span><span class="s2">.</span><span class="s1">EnergyFunction</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">awt</span><span class="s2">.</span><span class="s1">image</span><span class="s2">.</span><span class="s1">BufferedImage</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">io</span><span class="s2">.</span><span class="s1">File</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">io</span><span class="s2">.</span><span class="s1">FileNotFoundException</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">io</span><span class="s2">.</span><span class="s1">IOException</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">List</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Scanner</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">SplittableRandom</span><span class="s2">;</span>
+
+<span class="s0">import static </span><span class="s1">org</span><span class="s2">.</span><span class="s1">junit</span><span class="s2">.</span><span class="s1">jupiter</span><span class="s2">.</span><span class="s1">api</span><span class="s2">.</span><span class="s1">Assertions</span><span class="s2">.*;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Abstract class providing test cases for all implementations of the {</span><span class="s4">@link </span><span class="s3">SeamFinder} interface.</span>
+ <span class="s3">*</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">SeamFinder</span>
+ <span class="s3">*/</span>
+<span class="s1">@TestInstance</span><span class="s2">(</span><span class="s1">TestInstance</span><span class="s2">.</span><span class="s1">Lifecycle</span><span class="s2">.</span><span class="s1">PER_CLASS</span><span class="s2">)</span>
+<span class="s0">public abstract class </span><span class="s1">SeamFinderTests </span><span class="s2">{</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Error tolerance for the minimum-cost seam.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static final double </span><span class="s1">EPSILON </span><span class="s2">= </span><span class="s5">1e-5</span><span class="s2">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* The base directory path for the images.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static final </span><span class="s1">String BASE_PATH </span><span class="s2">= </span><span class="s6">&quot;data/seamcarving/&quot;</span><span class="s2">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* The {</span><span class="s4">@link </span><span class="s3">EnergyFunction} implementation.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static final </span><span class="s1">EnergyFunction f </span><span class="s2">= </span><span class="s0">new </span><span class="s1">DualGradientEnergyFunction</span><span class="s2">();</span>
+    <span class="s3">/**</span>
+     <span class="s3">* The {</span><span class="s4">@link </span><span class="s3">SeamFinder} implementation to test.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private </span><span class="s1">SeamFinder seamFinder</span><span class="s2">;</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Returns a new instance of the {</span><span class="s4">@link </span><span class="s3">SeamFinder} interface.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">a new instance of the {</span><span class="s4">@link </span><span class="s3">SeamFinder} interface</span>
+     <span class="s3">*/</span>
+    <span class="s0">public abstract </span><span class="s1">SeamFinder createSeamFinder</span><span class="s2">();</span>
+
+    <span class="s1">@BeforeAll</span>
+    <span class="s0">void </span><span class="s1">setup</span><span class="s2">() {</span>
+        <span class="s1">seamFinder </span><span class="s2">= </span><span class="s1">createSeamFinder</span><span class="s2">();</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@ParameterizedTest</span>
+    <span class="s1">@ValueSource</span><span class="s2">(</span><span class="s1">strings </span><span class="s2">= {</span><span class="s6">&quot;HJoceanSmall&quot;</span><span class="s2">, </span><span class="s6">&quot;stripes&quot;</span><span class="s2">, </span><span class="s6">&quot;diagonals&quot;</span><span class="s2">, </span><span class="s6">&quot;diag_test&quot;</span><span class="s2">, </span><span class="s6">&quot;chameleon&quot;</span><span class="s2">,</span>
+                            <span class="s6">&quot;12x10&quot;</span><span class="s2">, </span><span class="s6">&quot;10x12&quot;</span><span class="s2">, </span><span class="s6">&quot;10x10&quot;</span><span class="s2">, </span><span class="s6">&quot;8x3&quot;</span><span class="s2">, </span><span class="s6">&quot;7x10&quot;</span><span class="s2">, </span><span class="s6">&quot;7x3&quot;</span><span class="s2">, </span><span class="s6">&quot;6x5&quot;</span><span class="s2">, </span><span class="s6">&quot;5x6&quot;</span><span class="s2">, </span><span class="s6">&quot;4x6&quot;</span><span class="s2">,</span>
+                            <span class="s6">&quot;3x8&quot;</span><span class="s2">, </span><span class="s6">&quot;3x7&quot;</span><span class="s2">, </span><span class="s6">&quot;3x4&quot;</span><span class="s2">, </span><span class="s6">&quot;3x3&quot;</span><span class="s2">})</span>
+    <span class="s0">void </span><span class="s1">precomputedImages</span><span class="s2">(</span><span class="s1">String basename</span><span class="s2">) </span><span class="s0">throws </span><span class="s1">IOException </span><span class="s2">{</span>
+        <span class="s1">Picture picture </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Picture</span><span class="s2">(</span><span class="s0">new </span><span class="s1">File</span><span class="s2">(</span><span class="s1">BASE_PATH </span><span class="s2">+ </span><span class="s1">basename </span><span class="s2">+ </span><span class="s6">&quot;.png&quot;</span><span class="s2">));</span>
+
+        <span class="s0">double </span><span class="s1">horizontalExpected </span><span class="s2">= </span><span class="s1">precomputedEnergy</span><span class="s2">(</span><span class="s1">basename</span><span class="s2">, </span><span class="s6">&quot;horizontal&quot;</span><span class="s2">);</span>
+        <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">horizontalSeam </span><span class="s2">= </span><span class="s1">seamFinder</span><span class="s2">.</span><span class="s1">findHorizontal</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">, </span><span class="s1">f</span><span class="s2">);</span>
+        <span class="s1">checkHorizontal</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">, </span><span class="s1">horizontalSeam</span><span class="s2">);</span>
+        <span class="s0">double </span><span class="s1">horizontalActual </span><span class="s2">= </span><span class="s1">energyHorizontal</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">, </span><span class="s1">horizontalSeam</span><span class="s2">);</span>
+        <span class="s1">assertEquals</span><span class="s2">(</span><span class="s1">horizontalExpected</span><span class="s2">, </span><span class="s1">horizontalActual</span><span class="s2">, </span><span class="s1">EPSILON</span><span class="s2">, () </span><span class="s1">-&gt; String</span><span class="s2">.</span><span class="s1">format</span><span class="s2">(</span>
+                <span class="s6">&quot;</span><span class="s0">\n</span><span class="s6">&quot; </span><span class="s2">+</span>
+                <span class="s6">&quot;Horizontal expected energy: %s</span><span class="s0">\n</span><span class="s6">&quot; </span><span class="s2">+</span>
+                <span class="s6">&quot;           actual energy:   %s</span><span class="s0">\n</span><span class="s6">&quot; </span><span class="s2">+</span>
+                <span class="s6">&quot;           actual seam:     %s&quot;</span><span class="s2">,</span>
+                <span class="s1">horizontalExpected</span><span class="s2">, </span><span class="s1">horizontalActual</span><span class="s2">, </span><span class="s1">horizontalSeam</span><span class="s2">));</span>
+
+        <span class="s0">double </span><span class="s1">verticalExpected </span><span class="s2">= </span><span class="s1">precomputedEnergy</span><span class="s2">(</span><span class="s1">basename</span><span class="s2">, </span><span class="s6">&quot;vertical&quot;</span><span class="s2">);</span>
+        <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">verticalSeam </span><span class="s2">= </span><span class="s1">seamFinder</span><span class="s2">.</span><span class="s1">findVertical</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">, </span><span class="s1">f</span><span class="s2">);</span>
+        <span class="s1">checkHorizontal</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">.</span><span class="s1">transposed</span><span class="s2">(), </span><span class="s1">verticalSeam</span><span class="s2">);</span>
+        <span class="s0">double </span><span class="s1">verticalActual </span><span class="s2">= </span><span class="s1">energyHorizontal</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">.</span><span class="s1">transposed</span><span class="s2">(), </span><span class="s1">verticalSeam</span><span class="s2">);</span>
+        <span class="s1">assertEquals</span><span class="s2">(</span><span class="s1">verticalExpected</span><span class="s2">, </span><span class="s1">verticalActual</span><span class="s2">, </span><span class="s1">EPSILON</span><span class="s2">, () </span><span class="s1">-&gt; String</span><span class="s2">.</span><span class="s1">format</span><span class="s2">(</span>
+                <span class="s6">&quot;</span><span class="s0">\n</span><span class="s6">&quot; </span><span class="s2">+</span>
+                <span class="s6">&quot;Vertical expected energy: %s</span><span class="s0">\n</span><span class="s6">&quot; </span><span class="s2">+</span>
+                <span class="s6">&quot;         actual energy:   %s</span><span class="s0">\n</span><span class="s6">&quot; </span><span class="s2">+</span>
+                <span class="s6">&quot;         actual seam:     %s&quot;</span><span class="s2">,</span>
+                <span class="s1">verticalExpected</span><span class="s2">, </span><span class="s1">verticalActual</span><span class="s2">, </span><span class="s1">verticalSeam</span><span class="s2">));</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Returns the expected energy for a minimum-cost seam in the picture corresponding to the file name.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">basename    the base file name of the picture.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">orientation the seam orientation, either &quot;horizontal&quot; or &quot;vertical&quot;.</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">the expected energy for a minimum-cost seam in the picture corresponding to the file name.</span>
+     <span class="s3">* </span><span class="s4">@throws </span><span class="s3">FileNotFoundException if the expected seam cost file for the given orientation is missing.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static double </span><span class="s1">precomputedEnergy</span><span class="s2">(</span><span class="s1">String basename</span><span class="s2">, </span><span class="s1">String orientation</span><span class="s2">) </span><span class="s0">throws </span><span class="s1">FileNotFoundException </span><span class="s2">{</span>
+        <span class="s1">File file </span><span class="s2">= </span><span class="s0">new </span><span class="s1">File</span><span class="s2">(</span><span class="s1">BASE_PATH </span><span class="s2">+ </span><span class="s1">basename </span><span class="s2">+ </span><span class="s6">&quot;.&quot; </span><span class="s2">+ </span><span class="s1">orientation </span><span class="s2">+ </span><span class="s6">&quot;.txt&quot;</span><span class="s2">);</span>
+        <span class="s0">try </span><span class="s2">(</span><span class="s1">Scanner reader </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Scanner</span><span class="s2">(</span><span class="s1">file</span><span class="s2">)) {</span>
+            <span class="s0">return </span><span class="s1">reader</span><span class="s2">.</span><span class="s1">nextDouble</span><span class="s2">();</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Checks that the seam is a valid horizontal seam in the picture.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">picture the {</span><span class="s4">@link </span><span class="s3">Picture}.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">seam    the seam to remove.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static void </span><span class="s1">checkHorizontal</span><span class="s2">(</span><span class="s1">Picture picture</span><span class="s2">, </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">seam</span><span class="s2">) {</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">seam </span><span class="s2">== </span><span class="s0">null </span><span class="s2">|| </span><span class="s1">seam</span><span class="s2">.</span><span class="s1">isEmpty</span><span class="s2">()) {</span>
+            <span class="s0">throw new </span><span class="s1">NullPointerException</span><span class="s2">(</span><span class="s6">&quot;Seam cannot be null or empty&quot;</span><span class="s2">);</span>
+        <span class="s2">} </span><span class="s0">else if </span><span class="s2">(</span><span class="s1">seam</span><span class="s2">.</span><span class="s1">size</span><span class="s2">() != </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">width</span><span class="s2">()) {</span>
+            <span class="s0">throw new </span><span class="s1">IllegalArgumentException</span><span class="s2">(</span><span class="s6">&quot;Seam length does not match image width&quot;</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">i </span><span class="s2">= </span><span class="s5">1</span><span class="s2">; </span><span class="s1">i </span><span class="s2">&lt; </span><span class="s1">seam</span><span class="s2">.</span><span class="s1">size</span><span class="s2">(); </span><span class="s1">i </span><span class="s2">+= </span><span class="s5">1</span><span class="s2">) {</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">Math</span><span class="s2">.</span><span class="s1">abs</span><span class="s2">(</span><span class="s1">seam</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">i </span><span class="s2">- </span><span class="s5">1</span><span class="s2">) - </span><span class="s1">seam</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">i</span><span class="s2">)) &gt; </span><span class="s5">1</span><span class="s2">) {</span>
+                <span class="s0">throw new </span><span class="s1">IllegalArgumentException</span><span class="s2">(</span><span class="s6">&quot;Seam value too far from predecessor at index &quot; </span><span class="s2">+ </span><span class="s1">i</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Returns the energy of the horizontal seam by applying the given {</span><span class="s4">@link </span><span class="s3">EnergyFunction} on the {</span><span class="s4">@link </span><span class="s3">Picture}.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">picture the {</span><span class="s4">@link </span><span class="s3">Picture}.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">seam    the seam to remove.</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">the energy of the horizontal seam by applying the given {</span><span class="s4">@link </span><span class="s3">EnergyFunction} on the {</span><span class="s4">@link </span><span class="s3">Picture}.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static double </span><span class="s1">energyHorizontal</span><span class="s2">(</span><span class="s1">Picture picture</span><span class="s2">, </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">seam</span><span class="s2">) {</span>
+        <span class="s0">double </span><span class="s1">energy </span><span class="s2">= </span><span class="s5">0.0</span><span class="s2">;</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">x </span><span class="s2">= </span><span class="s5">0</span><span class="s2">; </span><span class="s1">x </span><span class="s2">&lt; </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">width</span><span class="s2">(); </span><span class="s1">x </span><span class="s2">+= </span><span class="s5">1</span><span class="s2">) {</span>
+            <span class="s1">energy </span><span class="s2">+= </span><span class="s1">f</span><span class="s2">.</span><span class="s1">apply</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">, </span><span class="s1">x</span><span class="s2">, </span><span class="s1">seam</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x</span><span class="s2">));</span>
+        <span class="s2">}</span>
+        <span class="s0">return </span><span class="s1">energy</span><span class="s2">;</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Nested</span>
+    <span class="s1">@Disabled</span>
+    <span class="s0">class </span><span class="s1">RuntimeExperiments </span><span class="s2">{</span>
+        <span class="s3">/**</span>
+         <span class="s3">* Maximum image dimensions in pixels. Making this smaller means experiments run faster.</span>
+         <span class="s3">*/</span>
+        <span class="s0">private static final int </span><span class="s1">MAX_SIZE </span><span class="s2">= </span><span class="s5">500</span><span class="s2">;</span>
+        <span class="s3">/**</span>
+         <span class="s3">* Step size increment. Making this smaller means experiments run slower.</span>
+         <span class="s3">*/</span>
+        <span class="s0">private static final int </span><span class="s1">STEP </span><span class="s2">= </span><span class="s5">25</span><span class="s2">;</span>
+        <span class="s3">/**</span>
+         <span class="s3">* Number of trials to per implementation run. Making this smaller means experiments run faster.</span>
+         <span class="s3">*/</span>
+        <span class="s0">private static final int </span><span class="s1">NUM_TRIALS </span><span class="s2">= </span><span class="s5">25</span><span class="s2">;</span>
+
+        <span class="s1">@Test</span>
+        <span class="s0">void </span><span class="s1">randomPictures</span><span class="s2">() {</span>
+            <span class="s1">SplittableRandom spRandom </span><span class="s2">= </span><span class="s0">new </span><span class="s1">SplittableRandom</span><span class="s2">(</span><span class="s5">373</span><span class="s2">);</span>
+            <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">size </span><span class="s2">= </span><span class="s1">STEP</span><span class="s2">; </span><span class="s1">size </span><span class="s2">&lt;= </span><span class="s1">MAX_SIZE</span><span class="s2">; </span><span class="s1">size </span><span class="s2">+= </span><span class="s1">STEP</span><span class="s2">) {</span>
+                <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">print</span><span class="s2">(</span><span class="s1">size</span><span class="s2">);</span>
+                <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">print</span><span class="s2">(</span><span class="s6">','</span><span class="s2">);</span>
+
+                <span class="s7">// Generate a random square-size picture using the spRandom source</span>
+                <span class="s1">Picture picture </span><span class="s2">= </span><span class="s1">randomPicture</span><span class="s2">(</span><span class="s1">size</span><span class="s2">, </span><span class="s1">size</span><span class="s2">, </span><span class="s1">spRandom</span><span class="s2">);</span>
+
+                <span class="s7">// Record the total runtimes accumulated across all trials</span>
+                <span class="s0">long </span><span class="s1">totalTime </span><span class="s2">= </span><span class="s5">0</span><span class="s2">;</span>
+
+                <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">i </span><span class="s2">= </span><span class="s5">0</span><span class="s2">; </span><span class="s1">i </span><span class="s2">&lt; </span><span class="s1">NUM_TRIALS</span><span class="s2">; </span><span class="s1">i </span><span class="s2">+= </span><span class="s5">1</span><span class="s2">) {</span>
+                    <span class="s7">// Measure the time to find a horizontal seam</span>
+                    <span class="s0">long </span><span class="s1">start </span><span class="s2">= </span><span class="s1">System</span><span class="s2">.</span><span class="s1">nanoTime</span><span class="s2">();</span>
+                    <span class="s1">seamFinder</span><span class="s2">.</span><span class="s1">findHorizontal</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">, </span><span class="s1">f</span><span class="s2">);</span>
+                    <span class="s0">long </span><span class="s1">time </span><span class="s2">= </span><span class="s1">System</span><span class="s2">.</span><span class="s1">nanoTime</span><span class="s2">() - </span><span class="s1">start</span><span class="s2">;</span>
+                    <span class="s1">totalTime </span><span class="s2">+= </span><span class="s1">time</span><span class="s2">;</span>
+                <span class="s2">}</span>
+
+                <span class="s7">// Output the averages to 10 decimal places.</span>
+                <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">print</span><span class="s2">(</span><span class="s1">totalTime </span><span class="s2">/ (</span><span class="s0">double</span><span class="s2">) </span><span class="s1">NUM_TRIALS</span><span class="s2">);</span>
+                <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">();</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+
+        <span class="s3">/**</span>
+         <span class="s3">* Returns a new picture with the given width and height dimensions filled with random colors.</span>
+         <span class="s3">*</span>
+         <span class="s3">* </span><span class="s4">@param </span><span class="s3">width    the horizontal dimension for the picture.</span>
+         <span class="s3">* </span><span class="s4">@param </span><span class="s3">height   the vertical dimension for the picture.</span>
+         <span class="s3">* </span><span class="s4">@param </span><span class="s3">spRandom the {</span><span class="s4">@link </span><span class="s3">SplittableRandom} instance for generating random colors.</span>
+         <span class="s3">* </span><span class="s4">@see </span><span class="s8">&lt;a href=&quot;https://codereview.stackexchange.com/a/244139&quot;&gt;</span><span class="s3">Fastest way to create random pixel image</span><span class="s8">&lt;/a&gt;</span>
+         <span class="s3">* </span><span class="s4">@return </span><span class="s3">a new picture with the given width and height dimensions filled with random colors.</span>
+         <span class="s3">*/</span>
+        <span class="s0">private </span><span class="s1">Picture randomPicture</span><span class="s2">(</span><span class="s0">int </span><span class="s1">width</span><span class="s2">, </span><span class="s0">int </span><span class="s1">height</span><span class="s2">, </span><span class="s1">SplittableRandom spRandom</span><span class="s2">) {</span>
+            <span class="s1">BufferedImage image </span><span class="s2">= </span><span class="s0">new </span><span class="s1">BufferedImage</span><span class="s2">(</span><span class="s1">width</span><span class="s2">, </span><span class="s1">height</span><span class="s2">, </span><span class="s1">BufferedImage</span><span class="s2">.</span><span class="s1">TYPE_INT_RGB</span><span class="s2">);</span>
+            <span class="s0">long </span><span class="s1">bytesPerPixel </span><span class="s2">= </span><span class="s5">4L</span><span class="s2">;</span>
+            <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">y </span><span class="s2">= </span><span class="s5">0</span><span class="s2">; </span><span class="s1">y </span><span class="s2">&lt; </span><span class="s1">height</span><span class="s2">; </span><span class="s1">y </span><span class="s2">+= </span><span class="s5">1</span><span class="s2">) {</span>
+                <span class="s0">int</span><span class="s2">[] </span><span class="s1">row </span><span class="s2">= </span><span class="s1">spRandom</span><span class="s2">.</span><span class="s1">ints</span><span class="s2">(</span><span class="s1">bytesPerPixel </span><span class="s2">* </span><span class="s1">width</span><span class="s2">, </span><span class="s5">0</span><span class="s2">, </span><span class="s5">256</span><span class="s2">).</span><span class="s1">toArray</span><span class="s2">();</span>
+                <span class="s1">image</span><span class="s2">.</span><span class="s1">getRaster</span><span class="s2">().</span><span class="s1">setPixels</span><span class="s2">(</span><span class="s5">0</span><span class="s2">, </span><span class="s1">y</span><span class="s2">, </span><span class="s1">width</span><span class="s2">, </span><span class="s5">1</span><span class="s2">, </span><span class="s1">row</span><span class="s2">);</span>
+            <span class="s2">}</span>
+            <span class="s0">return new </span><span class="s1">Picture</span><span class="s2">(</span><span class="s1">image</span><span class="s2">);</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

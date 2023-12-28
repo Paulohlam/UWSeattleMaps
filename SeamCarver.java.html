@@ -1,0 +1,171 @@
+<html>
+<head>
+<title>SeamCarver.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #67a37c; font-style: italic;}
+.s5 { color: #6aab73;}
+.s6 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+SeamCarver.java</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">graphs</span><span class="s2">.</span><span class="s1">shortestpaths</span><span class="s2">.</span><span class="s1">DijkstraSolver</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">seamfinding</span><span class="s2">.</span><span class="s1">energy</span><span class="s2">.</span><span class="s1">DualGradientEnergyFunction</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">seamfinding</span><span class="s2">.</span><span class="s1">energy</span><span class="s2">.</span><span class="s1">EnergyFunction</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">seamfinding</span><span class="s2">.</span><span class="s1">AdjacencyListSeamFinder</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">seamfinding</span><span class="s2">.</span><span class="s1">Picture</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">seamfinding</span><span class="s2">.</span><span class="s1">SeamFinder</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">io</span><span class="s2">.</span><span class="s1">File</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">io</span><span class="s2">.</span><span class="s1">IOException</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">List</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Scanner</span><span class="s2">;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Seam carving, an approach for content-aware image resizing. Given a {</span><span class="s4">@link </span><span class="s3">Picture}, an {</span><span class="s4">@link </span><span class="s3">EnergyFunction}, and a</span>
+ <span class="s3">* {</span><span class="s4">@link </span><span class="s3">SeamFinder} algorithm, {</span><span class="s4">@link </span><span class="s3">#removeHorizontal()} or {</span><span class="s4">@link </span><span class="s3">#removeVertical()} seams from the picture.</span>
+ <span class="s3">*</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">Picture</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">EnergyFunction</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">SeamFinder</span>
+ <span class="s3">*/</span>
+<span class="s0">public class </span><span class="s1">SeamCarver </span><span class="s2">{</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Path to the input image.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static final </span><span class="s1">String INPUT_PATH </span><span class="s2">= </span><span class="s5">&quot;data/seamcarving/HJoceanSmall.png&quot;</span><span class="s2">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Path to the output image.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static final </span><span class="s1">String OUTPUT_PATH </span><span class="s2">= </span><span class="s5">&quot;data/seamcarving/result.png&quot;</span><span class="s2">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* The {</span><span class="s4">@link </span><span class="s3">EnergyFunction} for determining the minimum-cost seam.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private final </span><span class="s1">EnergyFunction f</span><span class="s2">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* The {</span><span class="s4">@link </span><span class="s3">SeamFinder} implementation.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private final </span><span class="s1">SeamFinder seamFinder</span><span class="s2">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* The {</span><span class="s4">@link </span><span class="s3">Picture}.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private </span><span class="s1">Picture picture</span><span class="s2">;</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Constructs a seam carver by reading the {</span><span class="s4">@link </span><span class="s3">Picture} from the file, using the given {</span><span class="s4">@link </span><span class="s3">EnergyFunction} and</span>
+     <span class="s3">* {</span><span class="s4">@link </span><span class="s3">SeamFinder} implementations.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">file       the file path to the image.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">f          the {</span><span class="s4">@link </span><span class="s3">EnergyFunction}.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">seamFinder the {</span><span class="s4">@link </span><span class="s3">SeamFinder}.</span>
+     <span class="s3">* </span><span class="s4">@throws </span><span class="s3">IOException if an error occurs during reading.</span>
+     <span class="s3">*/</span>
+    <span class="s0">public </span><span class="s1">SeamCarver</span><span class="s2">(</span><span class="s1">File file</span><span class="s2">, </span><span class="s1">EnergyFunction f</span><span class="s2">, </span><span class="s1">SeamFinder seamFinder</span><span class="s2">) </span><span class="s0">throws </span><span class="s1">IOException </span><span class="s2">{</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">file </span><span class="s2">== </span><span class="s0">null </span><span class="s2">|| </span><span class="s1">f </span><span class="s2">== </span><span class="s0">null </span><span class="s2">|| </span><span class="s1">seamFinder </span><span class="s2">== </span><span class="s0">null</span><span class="s2">) {</span>
+            <span class="s0">throw new </span><span class="s1">IllegalArgumentException</span><span class="s2">(</span><span class="s5">&quot;Arguments cannot be null&quot;</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s0">this</span><span class="s2">.</span><span class="s1">picture </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Picture</span><span class="s2">(</span><span class="s1">file</span><span class="s2">);</span>
+        <span class="s0">this</span><span class="s2">.</span><span class="s1">f </span><span class="s2">= </span><span class="s1">f</span><span class="s2">;</span>
+        <span class="s0">this</span><span class="s2">.</span><span class="s1">seamFinder </span><span class="s2">= </span><span class="s1">seamFinder</span><span class="s2">;</span>
+    <span class="s2">}</span>
+
+    <span class="s0">public static void </span><span class="s1">main</span><span class="s2">(</span><span class="s1">String</span><span class="s2">[] </span><span class="s1">args</span><span class="s2">) </span><span class="s0">throws </span><span class="s1">IOException </span><span class="s2">{</span>
+        <span class="s1">EnergyFunction f </span><span class="s2">= </span><span class="s0">new </span><span class="s1">DualGradientEnergyFunction</span><span class="s2">();</span>
+        <span class="s1">SeamFinder seamFinder </span><span class="s2">= </span><span class="s0">new </span><span class="s1">AdjacencyListSeamFinder</span><span class="s2">(</span><span class="s1">DijkstraSolver::</span><span class="s0">new</span><span class="s2">);</span>
+        <span class="s1">SeamCarver seamCarver </span><span class="s2">= </span><span class="s0">new </span><span class="s1">SeamCarver</span><span class="s2">(</span><span class="s0">new </span><span class="s1">File</span><span class="s2">(</span><span class="s1">INPUT_PATH</span><span class="s2">), </span><span class="s1">f</span><span class="s2">, </span><span class="s1">seamFinder</span><span class="s2">);</span>
+
+        <span class="s0">int </span><span class="s1">originalWidth </span><span class="s2">= </span><span class="s1">seamCarver</span><span class="s2">.</span><span class="s1">picture</span><span class="s2">.</span><span class="s1">width</span><span class="s2">();</span>
+        <span class="s0">int </span><span class="s1">originalHeight </span><span class="s2">= </span><span class="s1">seamCarver</span><span class="s2">.</span><span class="s1">picture</span><span class="s2">.</span><span class="s1">height</span><span class="s2">();</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s5">&quot;Current size is &quot; </span><span class="s2">+ </span><span class="s1">originalWidth </span><span class="s2">+ </span><span class="s5">&quot;x&quot; </span><span class="s2">+ </span><span class="s1">originalHeight</span><span class="s2">);</span>
+        <span class="s0">int </span><span class="s1">newWidth </span><span class="s2">= </span><span class="s1">promptForSize</span><span class="s2">(</span><span class="s5">&quot;width&quot;</span><span class="s2">, </span><span class="s1">originalWidth</span><span class="s2">);</span>
+        <span class="s0">int </span><span class="s1">newHeight </span><span class="s2">= </span><span class="s1">promptForSize</span><span class="s2">(</span><span class="s5">&quot;height&quot;</span><span class="s2">, </span><span class="s1">originalHeight</span><span class="s2">);</span>
+
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">print</span><span class="s2">(</span><span class="s5">&quot;Reducing width... &quot;</span><span class="s2">);</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">i </span><span class="s2">= </span><span class="s6">0</span><span class="s2">; </span><span class="s1">i </span><span class="s2">&lt; </span><span class="s1">originalWidth </span><span class="s2">- </span><span class="s1">newWidth</span><span class="s2">; </span><span class="s1">i</span><span class="s2">++) {</span>
+            <span class="s1">seamCarver</span><span class="s2">.</span><span class="s1">removeVertical</span><span class="s2">();</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">i </span><span class="s2">% </span><span class="s6">10 </span><span class="s2">== </span><span class="s6">0</span><span class="s2">) {</span>
+                <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">print</span><span class="s2">(</span><span class="s1">originalWidth </span><span class="s2">- </span><span class="s1">i </span><span class="s2">+ </span><span class="s5">&quot; &quot;</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">();</span>
+
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">print</span><span class="s2">(</span><span class="s5">&quot;Reducing height... &quot;</span><span class="s2">);</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">i </span><span class="s2">= </span><span class="s6">0</span><span class="s2">; </span><span class="s1">i </span><span class="s2">&lt; </span><span class="s1">originalHeight </span><span class="s2">- </span><span class="s1">newHeight</span><span class="s2">; </span><span class="s1">i</span><span class="s2">++) {</span>
+            <span class="s1">seamCarver</span><span class="s2">.</span><span class="s1">removeHorizontal</span><span class="s2">();</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">i </span><span class="s2">% </span><span class="s6">10 </span><span class="s2">== </span><span class="s6">0</span><span class="s2">) {</span>
+                <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">print</span><span class="s2">(</span><span class="s1">originalHeight </span><span class="s2">- </span><span class="s1">i  </span><span class="s2">+ </span><span class="s5">&quot; &quot;</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">seamCarver</span><span class="s2">.</span><span class="s1">picture</span><span class="s2">.</span><span class="s1">save</span><span class="s2">(</span><span class="s0">new </span><span class="s1">File</span><span class="s2">(</span><span class="s1">OUTPUT_PATH</span><span class="s2">));</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Gets new size for resizing image.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">dimension the type of dimension (&quot;width&quot; or &quot;height&quot;).</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">max       the current dimension of this type.</span>
+     <span class="s3">* </span><span class="s4">@return          </span><span class="s3">the new dimension to resize to.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static int </span><span class="s1">promptForSize</span><span class="s2">(</span><span class="s1">String dimension</span><span class="s2">, </span><span class="s0">int </span><span class="s1">max</span><span class="s2">) {</span>
+        <span class="s1">Scanner console </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Scanner</span><span class="s2">(</span><span class="s1">System</span><span class="s2">.</span><span class="s1">in</span><span class="s2">);</span>
+        <span class="s0">while </span><span class="s2">(</span><span class="s0">true</span><span class="s2">) {</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">print</span><span class="s2">(</span><span class="s5">&quot;Enter a new &quot; </span><span class="s2">+ </span><span class="s1">dimension </span><span class="s2">+ </span><span class="s5">&quot; in [3, &quot; </span><span class="s2">+ </span><span class="s1">max </span><span class="s2">+ </span><span class="s5">&quot;]: &quot;</span><span class="s2">);</span>
+            <span class="s0">int </span><span class="s1">size </span><span class="s2">= </span><span class="s1">console</span><span class="s2">.</span><span class="s1">nextInt</span><span class="s2">();</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s6">3 </span><span class="s2">&lt;= </span><span class="s1">size </span><span class="s2">&amp;&amp; </span><span class="s1">size </span><span class="s2">&lt;= </span><span class="s1">max</span><span class="s2">) {</span>
+                <span class="s0">return </span><span class="s1">size</span><span class="s2">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Removes and returns a minimum-cost horizontal seam from the picture.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">a minimum-cost horizontal seam.</span>
+     <span class="s3">*/</span>
+    <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">removeHorizontal</span><span class="s2">() {</span>
+        <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">seam </span><span class="s2">= </span><span class="s1">seamFinder</span><span class="s2">.</span><span class="s1">findHorizontal</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">, </span><span class="s1">f</span><span class="s2">);</span>
+        <span class="s1">Picture result </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Picture</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">.</span><span class="s1">width</span><span class="s2">(), </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">height</span><span class="s2">() - </span><span class="s6">1</span><span class="s2">);</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">x </span><span class="s2">= </span><span class="s6">0</span><span class="s2">; </span><span class="s1">x </span><span class="s2">&lt; </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">width</span><span class="s2">(); </span><span class="s1">x </span><span class="s2">+= </span><span class="s6">1</span><span class="s2">) {</span>
+            <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">y </span><span class="s2">= </span><span class="s6">0</span><span class="s2">; </span><span class="s1">y </span><span class="s2">&lt; </span><span class="s1">seam</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x</span><span class="s2">); </span><span class="s1">y </span><span class="s2">+= </span><span class="s6">1</span><span class="s2">) {</span>
+                <span class="s1">result</span><span class="s2">.</span><span class="s1">set</span><span class="s2">(</span><span class="s1">x</span><span class="s2">, </span><span class="s1">y</span><span class="s2">, </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x</span><span class="s2">, </span><span class="s1">y</span><span class="s2">));</span>
+            <span class="s2">}</span>
+            <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">y </span><span class="s2">= </span><span class="s1">seam</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x</span><span class="s2">); </span><span class="s1">y </span><span class="s2">&lt; </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">height</span><span class="s2">() - </span><span class="s6">1</span><span class="s2">; </span><span class="s1">y </span><span class="s2">+= </span><span class="s6">1</span><span class="s2">) {</span>
+                <span class="s1">result</span><span class="s2">.</span><span class="s1">set</span><span class="s2">(</span><span class="s1">x</span><span class="s2">, </span><span class="s1">y</span><span class="s2">, </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x</span><span class="s2">, </span><span class="s1">y </span><span class="s2">+ </span><span class="s6">1</span><span class="s2">));</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">picture </span><span class="s2">= </span><span class="s1">result</span><span class="s2">;</span>
+        <span class="s0">return </span><span class="s1">seam</span><span class="s2">;</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Removes and returns a minimum-cost vertical seam from the picture.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">a minimum-cost vertical seam.</span>
+     <span class="s3">*/</span>
+    <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">removeVertical</span><span class="s2">() {</span>
+        <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">seam </span><span class="s2">= </span><span class="s1">seamFinder</span><span class="s2">.</span><span class="s1">findVertical</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">, </span><span class="s1">f</span><span class="s2">);</span>
+        <span class="s1">Picture result </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Picture</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">.</span><span class="s1">width</span><span class="s2">() - </span><span class="s6">1</span><span class="s2">, </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">height</span><span class="s2">());</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">y </span><span class="s2">= </span><span class="s6">0</span><span class="s2">; </span><span class="s1">y </span><span class="s2">&lt; </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(); </span><span class="s1">y </span><span class="s2">+= </span><span class="s6">1</span><span class="s2">) {</span>
+            <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">x </span><span class="s2">= </span><span class="s6">0</span><span class="s2">; </span><span class="s1">x </span><span class="s2">&lt; </span><span class="s1">seam</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">y</span><span class="s2">); </span><span class="s1">x </span><span class="s2">+= </span><span class="s6">1</span><span class="s2">) {</span>
+                <span class="s1">result</span><span class="s2">.</span><span class="s1">set</span><span class="s2">(</span><span class="s1">x</span><span class="s2">, </span><span class="s1">y</span><span class="s2">, </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x</span><span class="s2">, </span><span class="s1">y</span><span class="s2">));</span>
+            <span class="s2">}</span>
+            <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">x </span><span class="s2">= </span><span class="s1">seam</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">y</span><span class="s2">); </span><span class="s1">x </span><span class="s2">&lt; </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">width</span><span class="s2">() - </span><span class="s6">1</span><span class="s2">; </span><span class="s1">x </span><span class="s2">+= </span><span class="s6">1</span><span class="s2">) {</span>
+                <span class="s1">result</span><span class="s2">.</span><span class="s1">set</span><span class="s2">(</span><span class="s1">x</span><span class="s2">, </span><span class="s1">y</span><span class="s2">, </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x </span><span class="s2">+ </span><span class="s6">1</span><span class="s2">, </span><span class="s1">y</span><span class="s2">));</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s1">picture </span><span class="s2">= </span><span class="s1">result</span><span class="s2">;</span>
+        <span class="s0">return </span><span class="s1">seam</span><span class="s2">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

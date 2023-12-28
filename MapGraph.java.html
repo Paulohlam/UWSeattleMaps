@@ -1,0 +1,303 @@
+<html>
+<head>
+<title>MapGraph.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #67a37c; font-style: italic;}
+.s5 { color: #7a7e85;}
+.s6 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+MapGraph.java</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">autocomplete</span><span class="s2">.</span><span class="s1">Autocomplete</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">autocomplete</span><span class="s2">.</span><span class="s1">TreeSetAutocomplete</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">graphs</span><span class="s2">.</span><span class="s1">AStarGraph</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">graphs</span><span class="s2">.</span><span class="s1">Edge</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">graphs</span><span class="s2">.</span><span class="s1">shortestpaths</span><span class="s2">.</span><span class="s1">AStarSolver</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">org</span><span class="s2">.</span><span class="s1">locationtech</span><span class="s2">.</span><span class="s1">spatial4j</span><span class="s2">.</span><span class="s1">context</span><span class="s2">.</span><span class="s1">SpatialContext</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">org</span><span class="s2">.</span><span class="s1">locationtech</span><span class="s2">.</span><span class="s1">spatial4j</span><span class="s2">.</span><span class="s1">shape</span><span class="s2">.</span><span class="s1">Point</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">org</span><span class="s2">.</span><span class="s1">xml</span><span class="s2">.</span><span class="s1">sax</span><span class="s2">.</span><span class="s1">Attributes</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">org</span><span class="s2">.</span><span class="s1">xml</span><span class="s2">.</span><span class="s1">sax</span><span class="s2">.</span><span class="s1">SAXException</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">org</span><span class="s2">.</span><span class="s1">xml</span><span class="s2">.</span><span class="s1">sax</span><span class="s2">.</span><span class="s1">helpers</span><span class="s2">.</span><span class="s1">DefaultHandler</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">javax</span><span class="s2">.</span><span class="s1">xml</span><span class="s2">.</span><span class="s1">parsers</span><span class="s2">.</span><span class="s1">ParserConfigurationException</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">javax</span><span class="s2">.</span><span class="s1">xml</span><span class="s2">.</span><span class="s1">parsers</span><span class="s2">.</span><span class="s1">SAXParser</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">javax</span><span class="s2">.</span><span class="s1">xml</span><span class="s2">.</span><span class="s1">parsers</span><span class="s2">.</span><span class="s1">SAXParserFactory</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">io</span><span class="s2">.</span><span class="s1">IOException</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">io</span><span class="s2">.</span><span class="s1">InputStream</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.*;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">zip</span><span class="s2">.</span><span class="s1">GZIPInputStream</span><span class="s2">;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* {</span><span class="s4">@link </span><span class="s3">AStarGraph} of places as {</span><span class="s4">@link </span><span class="s3">Point} vertices and streets edges weighted by physical distance.</span>
+ <span class="s3">*</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">AStarGraph</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">MapServer</span>
+ <span class="s3">*/</span>
+<span class="s0">public class </span><span class="s1">MapGraph </span><span class="s0">implements </span><span class="s1">AStarGraph</span><span class="s2">&lt;</span><span class="s1">Point</span><span class="s2">&gt; {</span>
+    <span class="s0">private final </span><span class="s1">String osmPath</span><span class="s2">;</span>
+    <span class="s0">private final </span><span class="s1">String placesPath</span><span class="s2">;</span>
+    <span class="s0">private final </span><span class="s1">SpatialContext context</span><span class="s2">;</span>
+    <span class="s0">private final </span><span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">Point</span><span class="s2">, </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Edge</span><span class="s2">&lt;</span><span class="s1">Point</span><span class="s2">&gt;&gt;&gt; </span><span class="s1">neighbors</span><span class="s2">;</span>
+    <span class="s0">private final </span><span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Point</span><span class="s2">&gt;&gt; </span><span class="s1">locations</span><span class="s2">;</span>
+    <span class="s0">private final </span><span class="s1">Autocomplete autocomplete</span><span class="s2">;</span>
+    <span class="s0">private final </span><span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">CharSequence</span><span class="s2">, </span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">importance</span><span class="s2">;</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Constructs a new map graph from the path to an OSM GZ file and a places TSV.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">osmPath    The path to a gzipped OSM (XML) file.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">placesPath The path to a TSV file representing places and importance.</span>
+     <span class="s3">* </span><span class="s4">@throws </span><span class="s3">ParserConfigurationException if a parser cannot be created.</span>
+     <span class="s3">* </span><span class="s4">@throws </span><span class="s3">SAXException                 for SAX errors.</span>
+     <span class="s3">* </span><span class="s4">@throws </span><span class="s3">IOException                  if a file is not found or if the file is not gzipped.</span>
+     <span class="s3">*/</span>
+    <span class="s0">public </span><span class="s1">MapGraph</span><span class="s2">(</span><span class="s1">String osmPath</span><span class="s2">, </span><span class="s1">String placesPath</span><span class="s2">, </span><span class="s1">SpatialContext context</span><span class="s2">)</span>
+            <span class="s0">throws </span><span class="s1">ParserConfigurationException</span><span class="s2">, </span><span class="s1">SAXException</span><span class="s2">, </span><span class="s1">IOException </span><span class="s2">{</span>
+        <span class="s0">this</span><span class="s2">.</span><span class="s1">osmPath </span><span class="s2">= </span><span class="s1">osmPath</span><span class="s2">;</span>
+        <span class="s0">this</span><span class="s2">.</span><span class="s1">placesPath </span><span class="s2">= </span><span class="s1">placesPath</span><span class="s2">;</span>
+        <span class="s0">this</span><span class="s2">.</span><span class="s1">context </span><span class="s2">= </span><span class="s1">context</span><span class="s2">;</span>
+
+        <span class="s5">// Parse the OpenStreetMap (OSM) data using the SAXParser XML tree walker.</span>
+        <span class="s1">neighbors </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HashMap</span><span class="s2">&lt;&gt;();</span>
+        <span class="s1">Handler handler </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Handler</span><span class="s2">(</span><span class="s1">Set</span><span class="s2">.</span><span class="s1">of</span><span class="s2">(</span>
+                <span class="s6">&quot;motorway&quot;</span><span class="s2">,</span>
+                <span class="s6">&quot;trunk&quot;</span><span class="s2">,</span>
+                <span class="s6">&quot;primary&quot;</span><span class="s2">,</span>
+                <span class="s6">&quot;secondary&quot;</span><span class="s2">,</span>
+                <span class="s6">&quot;tertiary&quot;</span><span class="s2">,</span>
+                <span class="s6">&quot;unclassified&quot;</span><span class="s2">,</span>
+                <span class="s6">&quot;residential&quot;</span><span class="s2">,</span>
+                <span class="s6">&quot;living_street&quot;</span><span class="s2">,</span>
+                <span class="s6">&quot;motorway_link&quot;</span><span class="s2">,</span>
+                <span class="s6">&quot;trunk_link&quot;</span><span class="s2">,</span>
+                <span class="s6">&quot;primary_link&quot;</span><span class="s2">,</span>
+                <span class="s6">&quot;secondary_link&quot;</span><span class="s2">,</span>
+                <span class="s6">&quot;tertiary_link&quot;</span>
+        <span class="s2">));</span>
+        <span class="s1">SAXParser saxParser </span><span class="s2">= </span><span class="s1">SAXParserFactory</span><span class="s2">.</span><span class="s1">newInstance</span><span class="s2">().</span><span class="s1">newSAXParser</span><span class="s2">();</span>
+        <span class="s1">saxParser</span><span class="s2">.</span><span class="s1">parse</span><span class="s2">(</span><span class="s0">new </span><span class="s1">GZIPInputStream</span><span class="s2">(</span><span class="s1">fileStream</span><span class="s2">(</span><span class="s1">osmPath</span><span class="s2">)), </span><span class="s1">handler</span><span class="s2">);</span>
+
+        <span class="s5">// Add reachable locations to the Autocomplete engine.</span>
+        <span class="s1">locations </span><span class="s2">= </span><span class="s1">handler</span><span class="s2">.</span><span class="s1">byName</span><span class="s2">;</span>
+        <span class="s1">autocomplete </span><span class="s2">= </span><span class="s0">new </span><span class="s1">TreeSetAutocomplete</span><span class="s2">();</span>
+        <span class="s1">autocomplete</span><span class="s2">.</span><span class="s1">addAll</span><span class="s2">(</span><span class="s1">locations</span><span class="s2">.</span><span class="s1">keySet</span><span class="s2">());</span>
+
+        <span class="s5">// Parse the place-importance data.</span>
+        <span class="s1">importance </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HashMap</span><span class="s2">&lt;&gt;();</span>
+        <span class="s0">try </span><span class="s2">(</span><span class="s1">Scanner input </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Scanner</span><span class="s2">(</span><span class="s1">fileStream</span><span class="s2">(</span><span class="s1">placesPath</span><span class="s2">))) {</span>
+            <span class="s0">while </span><span class="s2">(</span><span class="s1">input</span><span class="s2">.</span><span class="s1">hasNextLine</span><span class="s2">()) {</span>
+                <span class="s1">Scanner line </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Scanner</span><span class="s2">(</span><span class="s1">input</span><span class="s2">.</span><span class="s1">nextLine</span><span class="s2">()).</span><span class="s1">useDelimiter</span><span class="s2">(</span><span class="s6">&quot;</span><span class="s0">\t</span><span class="s6">&quot;</span><span class="s2">);</span>
+                <span class="s1">importance</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">line</span><span class="s2">.</span><span class="s1">next</span><span class="s2">(), </span><span class="s1">line</span><span class="s2">.</span><span class="s1">nextInt</span><span class="s2">());</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Returns an input stream from the contents of the file at the given path.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">path a file path.</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">an input stream with the contents of the specified file.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static </span><span class="s1">InputStream fileStream</span><span class="s2">(</span><span class="s1">String path</span><span class="s2">) {</span>
+        <span class="s0">return </span><span class="s1">Thread</span><span class="s2">.</span><span class="s1">currentThread</span><span class="s2">().</span><span class="s1">getContextClassLoader</span><span class="s2">().</span><span class="s1">getResourceAsStream</span><span class="s2">(</span><span class="s1">path</span><span class="s2">);</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Returns the location closest to the given target location.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">target the target location.</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">the id of the location closest to the target.</span>
+     <span class="s3">*/</span>
+    <span class="s0">public </span><span class="s1">Point closest</span><span class="s2">(</span><span class="s1">Point target</span><span class="s2">) {</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">neighbors</span><span class="s2">.</span><span class="s1">containsKey</span><span class="s2">(</span><span class="s1">target</span><span class="s2">)) {</span>
+            <span class="s0">return </span><span class="s1">target</span><span class="s2">;</span>
+        <span class="s2">}</span>
+        <span class="s0">return </span><span class="s1">Collections</span><span class="s2">.</span><span class="s1">min</span><span class="s2">(</span><span class="s1">neighbors</span><span class="s2">.</span><span class="s1">keySet</span><span class="s2">(),</span>
+                <span class="s1">Comparator</span><span class="s2">.</span><span class="s1">comparingDouble</span><span class="s2">(</span><span class="s1">p -&gt; estimatedDistance</span><span class="s2">(</span><span class="s1">target</span><span class="s2">, </span><span class="s1">p</span><span class="s2">)));</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Return the names of all locations that prefix-match the query string.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">prefix prefix string that could be any case with or without punctuation.</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">a list of full names of locations matching the prefix.</span>
+     <span class="s3">*/</span>
+    <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">CharSequence</span><span class="s2">&gt; </span><span class="s1">getLocationsByPrefix</span><span class="s2">(</span><span class="s1">String prefix</span><span class="s2">) {</span>
+        <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">CharSequence</span><span class="s2">&gt; </span><span class="s1">result </span><span class="s2">= </span><span class="s1">autocomplete</span><span class="s2">.</span><span class="s1">allMatches</span><span class="s2">(</span><span class="s1">prefix</span><span class="s2">);</span>
+        <span class="s1">result</span><span class="s2">.</span><span class="s1">sort</span><span class="s2">(</span><span class="s1">Comparator</span><span class="s2">.</span><span class="s1">comparingInt</span><span class="s2">(</span><span class="s1">importance::get</span><span class="s2">));</span>
+        <span class="s0">return </span><span class="s1">result</span><span class="s2">;</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Return all locations that match a valid location name.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">locationName a full name of a valid location.</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">a list of locations whose name matches the location name.</span>
+     <span class="s3">*/</span>
+    <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Point</span><span class="s2">&gt; </span><span class="s1">getLocations</span><span class="s2">(</span><span class="s1">String locationName</span><span class="s2">) {</span>
+        <span class="s0">return </span><span class="s1">locations</span><span class="s2">.</span><span class="s1">getOrDefault</span><span class="s2">(</span><span class="s1">locationName</span><span class="s2">, </span><span class="s1">List</span><span class="s2">.</span><span class="s1">of</span><span class="s2">());</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Returns a list of points representing the shortest path from the points closest to the start and goal.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">start the {</span><span class="s4">@link </span><span class="s3">Point} to start the shortest path.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">goal  the {</span><span class="s4">@link </span><span class="s3">Point} to end the shortest path.</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">a list of points representing the shortest path from the points closest to the start and goal.</span>
+     <span class="s3">*/</span>
+    <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Point</span><span class="s2">&gt; </span><span class="s1">shortestPath</span><span class="s2">(</span><span class="s1">Point start</span><span class="s2">, </span><span class="s1">Point goal</span><span class="s2">) {</span>
+        <span class="s0">return new </span><span class="s1">AStarSolver</span><span class="s2">&lt;&gt;(</span><span class="s0">this</span><span class="s2">, </span><span class="s1">closest</span><span class="s2">(</span><span class="s1">start</span><span class="s2">), </span><span class="s1">closest</span><span class="s2">(</span><span class="s1">goal</span><span class="s2">)).</span><span class="s1">solution</span><span class="s2">();</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Edge</span><span class="s2">&lt;</span><span class="s1">Point</span><span class="s2">&gt;&gt; </span><span class="s1">neighbors</span><span class="s2">(</span><span class="s1">Point point</span><span class="s2">) {</span>
+        <span class="s0">return </span><span class="s1">neighbors</span><span class="s2">.</span><span class="s1">computeIfAbsent</span><span class="s2">(</span><span class="s1">point</span><span class="s2">, (</span><span class="s1">p</span><span class="s2">) </span><span class="s1">-&gt; List</span><span class="s2">.</span><span class="s1">of</span><span class="s2">());</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public double </span><span class="s1">estimatedDistance</span><span class="s2">(</span><span class="s1">Point start</span><span class="s2">, </span><span class="s1">Point end</span><span class="s2">) {</span>
+        <span class="s0">return </span><span class="s1">context</span><span class="s2">.</span><span class="s1">calcDistance</span><span class="s2">(</span><span class="s1">start</span><span class="s2">, </span><span class="s1">end</span><span class="s2">);</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public </span><span class="s1">String toString</span><span class="s2">() {</span>
+        <span class="s0">return </span><span class="s6">&quot;MapGraph{&quot; </span><span class="s2">+</span>
+                <span class="s6">&quot;osmPath='&quot; </span><span class="s2">+ </span><span class="s1">osmPath </span><span class="s2">+ </span><span class="s6">'</span><span class="s0">\'</span><span class="s6">' </span><span class="s2">+</span>
+                <span class="s6">&quot;, placesPath='&quot; </span><span class="s2">+ </span><span class="s1">placesPath </span><span class="s2">+ </span><span class="s6">'</span><span class="s0">\'</span><span class="s6">' </span><span class="s2">+</span>
+                <span class="s6">&quot;, context='&quot; </span><span class="s2">+ </span><span class="s1">context </span><span class="s2">+ </span><span class="s6">'</span><span class="s0">\'</span><span class="s6">' </span><span class="s2">+</span>
+                <span class="s6">'}'</span><span class="s2">;</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Adds an edge to this graph if it doesn't already exist using distance as the weight.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">from the originating point of the edge.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">to the terminating point of the edge.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private void </span><span class="s1">addEdge</span><span class="s2">(</span><span class="s1">Point from</span><span class="s2">, </span><span class="s1">Point to</span><span class="s2">) {</span>
+        <span class="s0">if </span><span class="s2">(!</span><span class="s1">neighbors</span><span class="s2">.</span><span class="s1">containsKey</span><span class="s2">(</span><span class="s1">from</span><span class="s2">)) {</span>
+            <span class="s1">neighbors</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">from</span><span class="s2">, </span><span class="s0">new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;());</span>
+        <span class="s2">}</span>
+        <span class="s1">neighbors</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">from</span><span class="s2">).</span><span class="s1">add</span><span class="s2">(</span><span class="s0">new </span><span class="s1">Edge</span><span class="s2">&lt;&gt;(</span><span class="s1">from</span><span class="s2">, </span><span class="s1">to</span><span class="s2">, </span><span class="s1">estimatedDistance</span><span class="s2">(</span><span class="s1">from</span><span class="s2">, </span><span class="s1">to</span><span class="s2">)));</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Parses OSM XML files to construct a MapGraph.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private class </span><span class="s1">Handler </span><span class="s0">extends </span><span class="s1">DefaultHandler </span><span class="s2">{</span>
+        <span class="s0">private final </span><span class="s1">Set</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">allowedHighwayTypes</span><span class="s2">;</span>
+        <span class="s0">private final </span><span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">Long</span><span class="s2">, </span><span class="s1">Point</span><span class="s2">&gt; </span><span class="s1">byId</span><span class="s2">;</span>
+        <span class="s0">private final </span><span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Point</span><span class="s2">&gt;&gt; </span><span class="s1">byName</span><span class="s2">;</span>
+        <span class="s0">private </span><span class="s1">String state</span><span class="s2">;</span>
+        <span class="s0">private long </span><span class="s1">id</span><span class="s2">;</span>
+        <span class="s0">private </span><span class="s1">String name</span><span class="s2">;</span>
+        <span class="s0">private boolean </span><span class="s1">validWay</span><span class="s2">;</span>
+        <span class="s0">private </span><span class="s1">Point location</span><span class="s2">;</span>
+        <span class="s0">private </span><span class="s1">Queue</span><span class="s2">&lt;</span><span class="s1">Point</span><span class="s2">&gt; </span><span class="s1">path</span><span class="s2">;</span>
+
+        <span class="s1">Handler</span><span class="s2">(</span><span class="s1">Set</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">allowedHighwayTypes</span><span class="s2">) {</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">allowedHighwayTypes </span><span class="s2">= </span><span class="s1">allowedHighwayTypes</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">byId </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HashMap</span><span class="s2">&lt;&gt;();</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">byName </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HashMap</span><span class="s2">&lt;&gt;();</span>
+            <span class="s1">reset</span><span class="s2">();</span>
+        <span class="s2">}</span>
+
+        <span class="s3">/**</span>
+         <span class="s3">* Reset the handler state before processing a new way or node.</span>
+         <span class="s3">*/</span>
+        <span class="s0">private void </span><span class="s1">reset</span><span class="s2">() {</span>
+            <span class="s1">state </span><span class="s2">= </span><span class="s6">&quot;&quot;</span><span class="s2">;</span>
+            <span class="s1">id </span><span class="s2">= </span><span class="s1">Long</span><span class="s2">.</span><span class="s1">MIN_VALUE</span><span class="s2">;</span>
+            <span class="s1">name </span><span class="s2">= </span><span class="s6">&quot;&quot;</span><span class="s2">;</span>
+            <span class="s1">validWay </span><span class="s2">= </span><span class="s0">false</span><span class="s2">;</span>
+            <span class="s1">location </span><span class="s2">= </span><span class="s0">null</span><span class="s2">;</span>
+            <span class="s1">path </span><span class="s2">= </span><span class="s0">new </span><span class="s1">ArrayDeque</span><span class="s2">&lt;&gt;();</span>
+        <span class="s2">}</span>
+
+        <span class="s3">/**</span>
+         <span class="s3">* Called at the beginning of an element.</span>
+         <span class="s3">*</span>
+         <span class="s3">* </span><span class="s4">@param </span><span class="s3">uri        The Namespace URI, or the empty string if the element has no Namespace URI or</span>
+         <span class="s3">*                   if Namespace processing is not being performed.</span>
+         <span class="s3">* </span><span class="s4">@param </span><span class="s3">localName  The local name (without prefix), or the empty string if Namespace</span>
+         <span class="s3">*                   processing is not being performed.</span>
+         <span class="s3">* </span><span class="s4">@param </span><span class="s3">qName      The qualified name (with prefix), or the empty string if qualified names are</span>
+         <span class="s3">*                   not available. This tells us which element we're looking at.</span>
+         <span class="s3">* </span><span class="s4">@param </span><span class="s3">attributes The attributes attached to the element. If there are no attributes, it</span>
+         <span class="s3">*                   shall be an empty Attributes object.</span>
+         <span class="s3">* </span><span class="s4">@see </span><span class="s3">Attributes</span>
+         <span class="s3">*/</span>
+        <span class="s1">@Override</span>
+        <span class="s0">public void </span><span class="s1">startElement</span><span class="s2">(</span><span class="s1">String uri</span><span class="s2">, </span><span class="s1">String localName</span><span class="s2">, </span><span class="s1">String qName</span><span class="s2">, </span><span class="s1">Attributes attributes</span><span class="s2">) {</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">qName</span><span class="s2">.</span><span class="s1">equals</span><span class="s2">(</span><span class="s6">&quot;node&quot;</span><span class="s2">)) {</span>
+                <span class="s1">state </span><span class="s2">= </span><span class="s6">&quot;node&quot;</span><span class="s2">;</span>
+                <span class="s1">id </span><span class="s2">= </span><span class="s1">Long</span><span class="s2">.</span><span class="s1">parseLong</span><span class="s2">(</span><span class="s1">attributes</span><span class="s2">.</span><span class="s1">getValue</span><span class="s2">(</span><span class="s6">&quot;id&quot;</span><span class="s2">));</span>
+                <span class="s1">location </span><span class="s2">= </span><span class="s1">context</span><span class="s2">.</span><span class="s1">getShapeFactory</span><span class="s2">().</span><span class="s1">pointLatLon</span><span class="s2">(</span>
+                        <span class="s1">Double</span><span class="s2">.</span><span class="s1">parseDouble</span><span class="s2">(</span><span class="s1">attributes</span><span class="s2">.</span><span class="s1">getValue</span><span class="s2">(</span><span class="s6">&quot;lat&quot;</span><span class="s2">)),</span>
+                        <span class="s1">Double</span><span class="s2">.</span><span class="s1">parseDouble</span><span class="s2">(</span><span class="s1">attributes</span><span class="s2">.</span><span class="s1">getValue</span><span class="s2">(</span><span class="s6">&quot;lon&quot;</span><span class="s2">))</span>
+                <span class="s2">);</span>
+            <span class="s2">} </span><span class="s0">else if </span><span class="s2">(</span><span class="s1">qName</span><span class="s2">.</span><span class="s1">equals</span><span class="s2">(</span><span class="s6">&quot;way&quot;</span><span class="s2">)) {</span>
+                <span class="s1">state </span><span class="s2">= </span><span class="s6">&quot;way&quot;</span><span class="s2">;</span>
+            <span class="s2">} </span><span class="s0">else if </span><span class="s2">(</span><span class="s1">state</span><span class="s2">.</span><span class="s1">equals</span><span class="s2">(</span><span class="s6">&quot;way&quot;</span><span class="s2">) &amp;&amp; </span><span class="s1">qName</span><span class="s2">.</span><span class="s1">equals</span><span class="s2">(</span><span class="s6">&quot;nd&quot;</span><span class="s2">)) {</span>
+                <span class="s0">long </span><span class="s1">ref </span><span class="s2">= </span><span class="s1">Long</span><span class="s2">.</span><span class="s1">parseLong</span><span class="s2">(</span><span class="s1">attributes</span><span class="s2">.</span><span class="s1">getValue</span><span class="s2">(</span><span class="s6">&quot;ref&quot;</span><span class="s2">));</span>
+                <span class="s1">path</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">byId</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">ref</span><span class="s2">));</span>
+            <span class="s2">} </span><span class="s0">else if </span><span class="s2">(</span><span class="s1">state</span><span class="s2">.</span><span class="s1">equals</span><span class="s2">(</span><span class="s6">&quot;way&quot;</span><span class="s2">) &amp;&amp; </span><span class="s1">qName</span><span class="s2">.</span><span class="s1">equals</span><span class="s2">(</span><span class="s6">&quot;tag&quot;</span><span class="s2">)) {</span>
+                <span class="s1">String k </span><span class="s2">= </span><span class="s1">attributes</span><span class="s2">.</span><span class="s1">getValue</span><span class="s2">(</span><span class="s6">&quot;k&quot;</span><span class="s2">);</span>
+                <span class="s1">String v </span><span class="s2">= </span><span class="s1">attributes</span><span class="s2">.</span><span class="s1">getValue</span><span class="s2">(</span><span class="s6">&quot;v&quot;</span><span class="s2">);</span>
+                <span class="s0">if </span><span class="s2">(</span><span class="s1">k</span><span class="s2">.</span><span class="s1">equals</span><span class="s2">(</span><span class="s6">&quot;highway&quot;</span><span class="s2">)) {</span>
+                    <span class="s1">validWay </span><span class="s2">= </span><span class="s1">allowedHighwayTypes</span><span class="s2">.</span><span class="s1">contains</span><span class="s2">(</span><span class="s1">v</span><span class="s2">);</span>
+                <span class="s2">}</span>
+            <span class="s2">} </span><span class="s0">else if </span><span class="s2">(</span><span class="s1">state</span><span class="s2">.</span><span class="s1">equals</span><span class="s2">(</span><span class="s6">&quot;node&quot;</span><span class="s2">) &amp;&amp; </span><span class="s1">qName</span><span class="s2">.</span><span class="s1">equals</span><span class="s2">(</span><span class="s6">&quot;tag&quot;</span><span class="s2">) &amp;&amp; </span><span class="s1">attributes</span><span class="s2">.</span><span class="s1">getValue</span><span class="s2">(</span><span class="s6">&quot;k&quot;</span><span class="s2">).</span><span class="s1">equals</span><span class="s2">(</span><span class="s6">&quot;name&quot;</span><span class="s2">)) {</span>
+                <span class="s1">name </span><span class="s2">= </span><span class="s1">attributes</span><span class="s2">.</span><span class="s1">getValue</span><span class="s2">(</span><span class="s6">&quot;v&quot;</span><span class="s2">).</span><span class="s1">strip</span><span class="s2">();</span>
+                <span class="s1">name </span><span class="s2">= </span><span class="s1">name</span><span class="s2">.</span><span class="s1">replaceAll</span><span class="s2">(</span><span class="s6">&quot;[“”]&quot;</span><span class="s2">, </span><span class="s6">&quot;</span><span class="s0">\&quot;</span><span class="s6">&quot;</span><span class="s2">);</span>
+                <span class="s1">name </span><span class="s2">= </span><span class="s1">name</span><span class="s2">.</span><span class="s1">replaceAll</span><span class="s2">(</span><span class="s6">&quot;[‘’]&quot;</span><span class="s2">, </span><span class="s6">&quot;'&quot;</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+
+        <span class="s3">/**</span>
+         <span class="s3">* Called at the end of an element.</span>
+         <span class="s3">*</span>
+         <span class="s3">* </span><span class="s4">@param </span><span class="s3">uri       The Namespace URI, or the empty string if the element has no Namespace URI or</span>
+         <span class="s3">*                  if Namespace processing is not being performed.</span>
+         <span class="s3">* </span><span class="s4">@param </span><span class="s3">localName The local name (without prefix), or the empty string if Namespace</span>
+         <span class="s3">*                  processing is not being performed.</span>
+         <span class="s3">* </span><span class="s4">@param </span><span class="s3">qName     The qualified name (with prefix), or the empty string if qualified names are</span>
+         <span class="s3">*                  not available.</span>
+         <span class="s3">*/</span>
+        <span class="s1">@Override</span>
+        <span class="s0">public void </span><span class="s1">endElement</span><span class="s2">(</span><span class="s1">String uri</span><span class="s2">, </span><span class="s1">String localName</span><span class="s2">, </span><span class="s1">String qName</span><span class="s2">) {</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">qName</span><span class="s2">.</span><span class="s1">equals</span><span class="s2">(</span><span class="s6">&quot;way&quot;</span><span class="s2">)) {</span>
+                <span class="s0">if </span><span class="s2">(</span><span class="s1">validWay </span><span class="s2">&amp;&amp; !</span><span class="s1">path</span><span class="s2">.</span><span class="s1">isEmpty</span><span class="s2">()) {</span>
+                    <span class="s1">Point from </span><span class="s2">= </span><span class="s1">path</span><span class="s2">.</span><span class="s1">remove</span><span class="s2">();</span>
+                    <span class="s0">while </span><span class="s2">(!</span><span class="s1">path</span><span class="s2">.</span><span class="s1">isEmpty</span><span class="s2">()) {</span>
+                        <span class="s1">Point to </span><span class="s2">= </span><span class="s1">path</span><span class="s2">.</span><span class="s1">remove</span><span class="s2">();</span>
+                        <span class="s1">addEdge</span><span class="s2">(</span><span class="s1">from</span><span class="s2">, </span><span class="s1">to</span><span class="s2">);</span>
+                        <span class="s1">addEdge</span><span class="s2">(</span><span class="s1">to</span><span class="s2">, </span><span class="s1">from</span><span class="s2">);</span>
+                        <span class="s1">from </span><span class="s2">= </span><span class="s1">to</span><span class="s2">;</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+                <span class="s1">reset</span><span class="s2">();</span>
+            <span class="s2">} </span><span class="s0">else if </span><span class="s2">(</span><span class="s1">qName</span><span class="s2">.</span><span class="s1">equals</span><span class="s2">(</span><span class="s6">&quot;node&quot;</span><span class="s2">)) {</span>
+                <span class="s1">byId</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">id</span><span class="s2">, </span><span class="s1">location</span><span class="s2">);</span>
+                <span class="s0">if </span><span class="s2">(!</span><span class="s1">name</span><span class="s2">.</span><span class="s1">isBlank</span><span class="s2">()) {</span>
+                    <span class="s1">byName</span><span class="s2">.</span><span class="s1">putIfAbsent</span><span class="s2">(</span><span class="s1">name</span><span class="s2">, </span><span class="s0">new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;());</span>
+                    <span class="s1">byName</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">name</span><span class="s2">).</span><span class="s1">add</span><span class="s2">(</span><span class="s1">location</span><span class="s2">);</span>
+                <span class="s2">}</span>
+                <span class="s1">reset</span><span class="s2">();</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

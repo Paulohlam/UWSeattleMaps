@@ -1,0 +1,96 @@
+<html>
+<head>
+<title>Moderator.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #6aab73;}
+.s5 { color: #7a7e85;}
+.s6 { color: #2aacb8;}
+.s7 { color: #68a67e; font-style: italic;}
+.s8 { color: #67a37c; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+Moderator.java</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">minpq</span><span class="s2">.</span><span class="s1">DoubleMapMinPQ</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">minpq</span><span class="s2">.</span><span class="s1">MinPQ</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">io</span><span class="s2">.</span><span class="s1">FileInputStream</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">io</span><span class="s2">.</span><span class="s1">IOException</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Random</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Scanner</span><span class="s2">;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Simulate a content moderation priority queue with &quot;streaming&quot; data.</span>
+ <span class="s3">*/</span>
+<span class="s0">public class </span><span class="s1">Moderator </span><span class="s2">{</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Path to the toxic content.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static final </span><span class="s1">String PATH </span><span class="s2">= </span><span class="s4">&quot;data/toxic.tsv&quot;</span><span class="s2">;</span>
+
+    <span class="s0">public static void </span><span class="s1">main</span><span class="s2">(</span><span class="s1">String</span><span class="s2">[] </span><span class="s1">args</span><span class="s2">) </span><span class="s0">throws </span><span class="s1">IOException </span><span class="s2">{</span>
+        <span class="s1">Scanner scanner </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Scanner</span><span class="s2">(</span><span class="s0">new </span><span class="s1">FileInputStream</span><span class="s2">(</span><span class="s1">PATH</span><span class="s2">));</span>
+        <span class="s1">scanner</span><span class="s2">.</span><span class="s1">nextLine</span><span class="s2">(); </span><span class="s5">// Skip header</span>
+
+        <span class="s1">MinPQ</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">pq </span><span class="s2">= </span><span class="s0">new </span><span class="s1">DoubleMapMinPQ</span><span class="s2">&lt;&gt;();</span>
+        <span class="s1">Random random </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Random</span><span class="s2">();</span>
+        <span class="s1">addComments</span><span class="s2">(</span><span class="s1">pq</span><span class="s2">, </span><span class="s1">scanner</span><span class="s2">, </span><span class="s1">random</span><span class="s2">.</span><span class="s1">nextInt</span><span class="s2">(</span><span class="s6">100</span><span class="s2">));</span>
+        <span class="s1">Scanner stdin </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Scanner</span><span class="s2">(</span><span class="s1">System</span><span class="s2">.</span><span class="s1">in</span><span class="s2">);</span>
+        <span class="s0">while </span><span class="s2">(!</span><span class="s1">pq</span><span class="s2">.</span><span class="s1">isEmpty</span><span class="s2">()) {</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">();</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s1">pq</span><span class="s2">.</span><span class="s1">removeMin</span><span class="s2">());</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">print</span><span class="s2">(</span><span class="s4">&quot;[Y]es/[N]o: &quot;</span><span class="s2">);</span>
+            <span class="s1">String response </span><span class="s2">= </span><span class="s0">null</span><span class="s2">;</span>
+            <span class="s0">while </span><span class="s2">(</span><span class="s1">response </span><span class="s2">== </span><span class="s0">null </span><span class="s2">&amp;&amp; </span><span class="s1">stdin</span><span class="s2">.</span><span class="s1">hasNextLine</span><span class="s2">()) {</span>
+                <span class="s1">response </span><span class="s2">= </span><span class="s1">stdin</span><span class="s2">.</span><span class="s1">nextLine</span><span class="s2">();</span>
+                <span class="s0">switch </span><span class="s2">(</span><span class="s1">response</span><span class="s2">.</span><span class="s1">strip</span><span class="s2">().</span><span class="s1">toLowerCase</span><span class="s2">()) {</span>
+                    <span class="s0">case </span><span class="s4">&quot;y&quot;</span><span class="s2">:</span>
+                    <span class="s0">case </span><span class="s4">&quot;yes&quot;</span><span class="s2">:</span>
+                    <span class="s0">case </span><span class="s4">&quot;n&quot;</span><span class="s2">:</span>
+                    <span class="s0">case </span><span class="s4">&quot;no&quot;</span><span class="s2">:</span>
+                        <span class="s5">// In a real system, write the response to the database.</span>
+                        <span class="s0">break</span><span class="s2">;</span>
+                    <span class="s0">default</span><span class="s2">:</span>
+                        <span class="s1">response </span><span class="s2">= </span><span class="s0">null</span><span class="s2">;</span>
+                        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">print</span><span class="s2">(</span><span class="s4">&quot;[Y]es/[N]o: &quot;</span><span class="s2">);</span>
+                        <span class="s0">break</span><span class="s2">;</span>
+                <span class="s2">}</span>
+            <span class="s2">}</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">random</span><span class="s2">.</span><span class="s1">nextBoolean</span><span class="s2">()) {</span>
+                <span class="s1">addComments</span><span class="s2">(</span><span class="s1">pq</span><span class="s2">, </span><span class="s1">scanner</span><span class="s2">, </span><span class="s1">random</span><span class="s2">.</span><span class="s1">nextInt</span><span class="s2">(</span><span class="s6">4</span><span class="s2">));</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Adds up to </span><span class="s7">&lt;i&gt;</span><span class="s3">N</span><span class="s7">&lt;/i&gt; </span><span class="s3">comments from the scanner to the priority queue with negated weights.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s8">@param </span><span class="s3">pq      the destination priority queue.</span>
+     <span class="s3">* </span><span class="s8">@param </span><span class="s3">scanner the input scanner.</span>
+     <span class="s3">* </span><span class="s8">@param </span><span class="s3">n       the number of comments to read from the scanner.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static void </span><span class="s1">addComments</span><span class="s2">(</span><span class="s1">MinPQ</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">&gt; </span><span class="s1">pq</span><span class="s2">, </span><span class="s1">Scanner scanner</span><span class="s2">, </span><span class="s0">int </span><span class="s1">n</span><span class="s2">) {</span>
+        <span class="s0">int </span><span class="s1">i </span><span class="s2">= </span><span class="s6">0</span><span class="s2">;</span>
+        <span class="s0">for </span><span class="s2">(; </span><span class="s1">i </span><span class="s2">&lt; </span><span class="s1">n </span><span class="s2">&amp;&amp; </span><span class="s1">scanner</span><span class="s2">.</span><span class="s1">hasNextLine</span><span class="s2">(); </span><span class="s1">i </span><span class="s2">+= </span><span class="s6">1</span><span class="s2">) {</span>
+            <span class="s1">Scanner line </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Scanner</span><span class="s2">(</span><span class="s1">scanner</span><span class="s2">.</span><span class="s1">nextLine</span><span class="s2">()).</span><span class="s1">useDelimiter</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\t</span><span class="s4">&quot;</span><span class="s2">);</span>
+            <span class="s0">double </span><span class="s1">toxicity </span><span class="s2">= </span><span class="s1">line</span><span class="s2">.</span><span class="s1">nextDouble</span><span class="s2">();</span>
+            <span class="s5">// Replace all but the first letter in each word.</span>
+            <span class="s1">String comment </span><span class="s2">= </span><span class="s1">line</span><span class="s2">.</span><span class="s1">next</span><span class="s2">().</span><span class="s1">replaceAll</span><span class="s2">(</span><span class="s4">&quot;</span><span class="s0">\\</span><span class="s4">w&quot;</span><span class="s2">, </span><span class="s4">&quot;*&quot;</span><span class="s2">);</span>
+            <span class="s5">// Prioritize most toxic content first by negating the weight.</span>
+            <span class="s1">pq</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">comment</span><span class="s2">, -</span><span class="s1">toxicity</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s1">i </span><span class="s2">+ </span><span class="s4">&quot; comments added to pq&quot;</span><span class="s2">);</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

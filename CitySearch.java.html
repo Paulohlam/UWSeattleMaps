@@ -1,0 +1,74 @@
+<html>
+<head>
+<title>CitySearch.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #2aacb8;}
+.s5 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+CitySearch.java</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">autocomplete</span><span class="s2">.</span><span class="s1">Autocomplete</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">autocomplete</span><span class="s2">.</span><span class="s1">TreeSetAutocomplete</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">io</span><span class="s2">.</span><span class="s1">FileInputStream</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">io</span><span class="s2">.</span><span class="s1">IOException</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.*;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Search the world's cities.</span>
+ <span class="s3">*/</span>
+<span class="s0">public class </span><span class="s1">CitySearch </span><span class="s2">{</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Maximum number of matches to print.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static final int </span><span class="s1">MAX_MATCHES </span><span class="s2">= </span><span class="s4">10</span><span class="s2">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Maximum number of cities to parse.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static final int </span><span class="s1">MAX_CITIES </span><span class="s2">= </span><span class="s4">1000000</span><span class="s2">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Path to the cities dataset.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static final </span><span class="s1">String PATH </span><span class="s2">= </span><span class="s5">&quot;data/cities.tsv&quot;</span><span class="s2">;</span>
+
+    <span class="s0">public static void </span><span class="s1">main</span><span class="s2">(</span><span class="s1">String</span><span class="s2">[] </span><span class="s1">args</span><span class="s2">) </span><span class="s0">throws </span><span class="s1">IOException </span><span class="s2">{</span>
+        <span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">String</span><span class="s2">, </span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">cities </span><span class="s2">= </span><span class="s0">new </span><span class="s1">LinkedHashMap</span><span class="s2">&lt;&gt;();</span>
+        <span class="s1">Scanner input </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Scanner</span><span class="s2">(</span><span class="s0">new </span><span class="s1">FileInputStream</span><span class="s2">(</span><span class="s1">PATH</span><span class="s2">));</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">i </span><span class="s2">= </span><span class="s4">0</span><span class="s2">; </span><span class="s1">i </span><span class="s2">&lt; </span><span class="s1">MAX_CITIES </span><span class="s2">&amp;&amp; </span><span class="s1">input</span><span class="s2">.</span><span class="s1">hasNextLine</span><span class="s2">(); </span><span class="s1">i </span><span class="s2">+= </span><span class="s4">1</span><span class="s2">) {</span>
+            <span class="s1">Scanner line </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Scanner</span><span class="s2">(</span><span class="s1">input</span><span class="s2">.</span><span class="s1">nextLine</span><span class="s2">()).</span><span class="s1">useDelimiter</span><span class="s2">(</span><span class="s5">&quot;</span><span class="s0">\t</span><span class="s5">&quot;</span><span class="s2">);</span>
+            <span class="s1">cities</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">line</span><span class="s2">.</span><span class="s1">next</span><span class="s2">(), </span><span class="s1">line</span><span class="s2">.</span><span class="s1">nextInt</span><span class="s2">());</span>
+        <span class="s2">}</span>
+        <span class="s1">Autocomplete autocomplete </span><span class="s2">= </span><span class="s0">new </span><span class="s1">TreeSetAutocomplete</span><span class="s2">();</span>
+        <span class="s1">autocomplete</span><span class="s2">.</span><span class="s1">addAll</span><span class="s2">(</span><span class="s1">cities</span><span class="s2">.</span><span class="s1">keySet</span><span class="s2">());</span>
+
+        <span class="s1">Scanner stdin </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Scanner</span><span class="s2">(</span><span class="s1">System</span><span class="s2">.</span><span class="s1">in</span><span class="s2">);</span>
+        <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">print</span><span class="s2">(</span><span class="s5">&quot;Query: &quot;</span><span class="s2">);</span>
+        <span class="s0">while </span><span class="s2">(</span><span class="s1">stdin</span><span class="s2">.</span><span class="s1">hasNextLine</span><span class="s2">()) {</span>
+            <span class="s1">String prefix </span><span class="s2">= </span><span class="s1">stdin</span><span class="s2">.</span><span class="s1">nextLine</span><span class="s2">();</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">prefix</span><span class="s2">.</span><span class="s1">isEmpty</span><span class="s2">()) {</span>
+                <span class="s1">System</span><span class="s2">.</span><span class="s1">exit</span><span class="s2">(</span><span class="s4">0</span><span class="s2">);</span>
+            <span class="s2">}</span>
+            <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">CharSequence</span><span class="s2">&gt; </span><span class="s1">matches </span><span class="s2">= </span><span class="s1">autocomplete</span><span class="s2">.</span><span class="s1">allMatches</span><span class="s2">(</span><span class="s1">prefix</span><span class="s2">);</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s1">matches</span><span class="s2">.</span><span class="s1">size</span><span class="s2">() + </span><span class="s5">&quot; matches&quot;</span><span class="s2">);</span>
+            <span class="s1">matches</span><span class="s2">.</span><span class="s1">sort</span><span class="s2">(</span><span class="s1">Comparator</span><span class="s2">.</span><span class="s1">comparingInt</span><span class="s2">(</span><span class="s1">cities::get</span><span class="s2">).</span><span class="s1">reversed</span><span class="s2">());</span>
+            <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">i </span><span class="s2">= </span><span class="s4">0</span><span class="s2">; </span><span class="s1">i </span><span class="s2">&lt; </span><span class="s1">Math</span><span class="s2">.</span><span class="s1">min</span><span class="s2">(</span><span class="s1">matches</span><span class="s2">.</span><span class="s1">size</span><span class="s2">(), </span><span class="s1">MAX_MATCHES</span><span class="s2">); </span><span class="s1">i </span><span class="s2">+= </span><span class="s4">1</span><span class="s2">) {</span>
+                <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">(</span><span class="s1">matches</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">i</span><span class="s2">));</span>
+            <span class="s2">}</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">println</span><span class="s2">();</span>
+            <span class="s1">System</span><span class="s2">.</span><span class="s1">out</span><span class="s2">.</span><span class="s1">print</span><span class="s2">(</span><span class="s5">&quot;Query: &quot;</span><span class="s2">);</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

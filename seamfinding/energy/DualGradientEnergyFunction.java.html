@@ -1,0 +1,135 @@
+<html>
+<head>
+<title>DualGradientEnergyFunction.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #67a37c; font-style: italic;}
+.s5 { color: #2aacb8;}
+.s6 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+DualGradientEnergyFunction.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">seamfinding</span><span class="s2">.</span><span class="s1">energy</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">seamfinding</span><span class="s2">.</span><span class="s1">Picture</span><span class="s2">;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Dual-gradient implementation of the {</span><span class="s4">@link </span><span class="s3">EnergyFunction} interface for {</span><span class="s4">@link </span><span class="s3">Picture} objects.</span>
+ <span class="s3">*</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">EnergyFunction</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">Picture</span>
+ <span class="s3">*/</span>
+<span class="s0">public class </span><span class="s1">DualGradientEnergyFunction </span><span class="s0">implements </span><span class="s1">EnergyFunction </span><span class="s2">{</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Returns the horizontal derivative for the (x, y) pixel in the picture.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">picture the input picture.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">x       the x-index into the picture.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">y       the y-index into the picture.</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">the horizontal derivative for the (x, y) pixel in the picture.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static double </span><span class="s1">horizontalDerivative</span><span class="s2">(</span><span class="s1">Picture picture</span><span class="s2">, </span><span class="s0">int </span><span class="s1">x</span><span class="s2">, </span><span class="s0">int </span><span class="s1">y</span><span class="s2">) {</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">x </span><span class="s2">== </span><span class="s5">0</span><span class="s2">) {</span>
+            <span class="s0">return </span><span class="s1">forwardDiff</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x</span><span class="s2">, </span><span class="s1">y</span><span class="s2">), </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x </span><span class="s2">+ </span><span class="s5">1</span><span class="s2">, </span><span class="s1">y</span><span class="s2">), </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x </span><span class="s2">+ </span><span class="s5">2</span><span class="s2">, </span><span class="s1">y</span><span class="s2">));</span>
+        <span class="s2">} </span><span class="s0">else if </span><span class="s2">(</span><span class="s1">x </span><span class="s2">== </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">width</span><span class="s2">() - </span><span class="s5">1</span><span class="s2">) {</span>
+            <span class="s0">return </span><span class="s1">forwardDiff</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x</span><span class="s2">, </span><span class="s1">y</span><span class="s2">), </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x </span><span class="s2">- </span><span class="s5">1</span><span class="s2">, </span><span class="s1">y</span><span class="s2">), </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x </span><span class="s2">- </span><span class="s5">2</span><span class="s2">, </span><span class="s1">y</span><span class="s2">));</span>
+        <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+            <span class="s0">return </span><span class="s1">centralDiff</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x </span><span class="s2">- </span><span class="s5">1</span><span class="s2">, </span><span class="s1">y</span><span class="s2">), </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x </span><span class="s2">+ </span><span class="s5">1</span><span class="s2">, </span><span class="s1">y</span><span class="s2">));</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Returns the vertical derivative for the (x, y) pixel in the picture.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">picture the input picture.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">x       the x-index into the picture.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">y       the y-index into the picture.</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">the vertical derivative for the (x, y) pixel in the picture.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static double </span><span class="s1">verticalDerivative</span><span class="s2">(</span><span class="s1">Picture picture</span><span class="s2">, </span><span class="s0">int </span><span class="s1">x</span><span class="s2">, </span><span class="s0">int </span><span class="s1">y</span><span class="s2">) {</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">y </span><span class="s2">== </span><span class="s5">0</span><span class="s2">) {</span>
+            <span class="s0">return </span><span class="s1">forwardDiff</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x</span><span class="s2">, </span><span class="s1">y</span><span class="s2">), </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x</span><span class="s2">, </span><span class="s1">y </span><span class="s2">+ </span><span class="s5">1</span><span class="s2">), </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x</span><span class="s2">, </span><span class="s1">y </span><span class="s2">+ </span><span class="s5">2</span><span class="s2">));</span>
+        <span class="s2">} </span><span class="s0">else if </span><span class="s2">(</span><span class="s1">y </span><span class="s2">== </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">height</span><span class="s2">() - </span><span class="s5">1</span><span class="s2">) {</span>
+            <span class="s0">return </span><span class="s1">forwardDiff</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x</span><span class="s2">, </span><span class="s1">y</span><span class="s2">), </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x</span><span class="s2">, </span><span class="s1">y </span><span class="s2">- </span><span class="s5">1</span><span class="s2">), </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x</span><span class="s2">, </span><span class="s1">y </span><span class="s2">- </span><span class="s5">2</span><span class="s2">));</span>
+        <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+            <span class="s0">return </span><span class="s1">centralDiff</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x</span><span class="s2">, </span><span class="s1">y </span><span class="s2">- </span><span class="s5">1</span><span class="s2">), </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">x</span><span class="s2">, </span><span class="s1">y </span><span class="s2">+ </span><span class="s5">1</span><span class="s2">));</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Returns the central difference between the two pixels' colors.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">rgb1 the first pixel's color.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">rgb2 the second pixel's color.</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">the central difference between the two pixels' colors.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static double </span><span class="s1">centralDiff</span><span class="s2">(</span><span class="s0">int </span><span class="s1">rgb1</span><span class="s2">, </span><span class="s0">int </span><span class="s1">rgb2</span><span class="s2">) {</span>
+        <span class="s0">return </span><span class="s1">Math</span><span class="s2">.</span><span class="s1">pow</span><span class="s2">(</span><span class="s1">red</span><span class="s2">(</span><span class="s1">rgb1</span><span class="s2">) - </span><span class="s1">red</span><span class="s2">(</span><span class="s1">rgb2</span><span class="s2">), </span><span class="s5">2</span><span class="s2">)</span>
+                <span class="s2">+ </span><span class="s1">Math</span><span class="s2">.</span><span class="s1">pow</span><span class="s2">(</span><span class="s1">green</span><span class="s2">(</span><span class="s1">rgb1</span><span class="s2">) - </span><span class="s1">green</span><span class="s2">(</span><span class="s1">rgb2</span><span class="s2">), </span><span class="s5">2</span><span class="s2">)</span>
+                <span class="s2">+ </span><span class="s1">Math</span><span class="s2">.</span><span class="s1">pow</span><span class="s2">(</span><span class="s1">blue</span><span class="s2">(</span><span class="s1">rgb1</span><span class="s2">) - </span><span class="s1">blue</span><span class="s2">(</span><span class="s1">rgb2</span><span class="s2">), </span><span class="s5">2</span><span class="s2">);</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Returns the forward/backward difference for the three adjacent pixels' colors.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">rgb1 the first adjacent pixel's color.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">rgb2 the second adjacent pixel's color.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">rgb3 the third adjacent pixel's color.</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">the forward/backward difference for the three adjacent pixels' colors.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static double </span><span class="s1">forwardDiff</span><span class="s2">(</span><span class="s0">int </span><span class="s1">rgb1</span><span class="s2">, </span><span class="s0">int </span><span class="s1">rgb2</span><span class="s2">, </span><span class="s0">int </span><span class="s1">rgb3</span><span class="s2">) {</span>
+        <span class="s0">return </span><span class="s1">Math</span><span class="s2">.</span><span class="s1">pow</span><span class="s2">(-</span><span class="s5">3 </span><span class="s2">* </span><span class="s1">red</span><span class="s2">(</span><span class="s1">rgb1</span><span class="s2">) + </span><span class="s5">4 </span><span class="s2">* </span><span class="s1">red</span><span class="s2">(</span><span class="s1">rgb2</span><span class="s2">) - </span><span class="s1">red</span><span class="s2">(</span><span class="s1">rgb3</span><span class="s2">), </span><span class="s5">2</span><span class="s2">)</span>
+                <span class="s2">+ </span><span class="s1">Math</span><span class="s2">.</span><span class="s1">pow</span><span class="s2">(-</span><span class="s5">3 </span><span class="s2">* </span><span class="s1">green</span><span class="s2">(</span><span class="s1">rgb1</span><span class="s2">) + </span><span class="s5">4 </span><span class="s2">* </span><span class="s1">green</span><span class="s2">(</span><span class="s1">rgb2</span><span class="s2">) - </span><span class="s1">green</span><span class="s2">(</span><span class="s1">rgb3</span><span class="s2">), </span><span class="s5">2</span><span class="s2">)</span>
+                <span class="s2">+ </span><span class="s1">Math</span><span class="s2">.</span><span class="s1">pow</span><span class="s2">(-</span><span class="s5">3 </span><span class="s2">* </span><span class="s1">blue</span><span class="s2">(</span><span class="s1">rgb1</span><span class="s2">) + </span><span class="s5">4 </span><span class="s2">* </span><span class="s1">blue</span><span class="s2">(</span><span class="s1">rgb2</span><span class="s2">) - </span><span class="s1">blue</span><span class="s2">(</span><span class="s1">rgb3</span><span class="s2">), </span><span class="s5">2</span><span class="s2">);</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Returns the 8-bit red color component as an {</span><span class="s4">@code </span><span class="s3">int}.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">rgb 24-bit color represented as three 8-bit red-green-blue color components.</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">the 8-bit red color component as an {</span><span class="s4">@code </span><span class="s3">int}.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static int </span><span class="s1">red</span><span class="s2">(</span><span class="s0">int </span><span class="s1">rgb</span><span class="s2">) {</span>
+        <span class="s0">return </span><span class="s2">(</span><span class="s1">rgb </span><span class="s2">&gt;&gt; </span><span class="s5">16</span><span class="s2">) &amp; </span><span class="s5">0xFF</span><span class="s2">;</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Returns the 8-bit green color component as an {</span><span class="s4">@code </span><span class="s3">int}.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">rgb 24-bit color represented as three 8-bit red-green-blue color components.</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">the 8-bit green color component as an {</span><span class="s4">@code </span><span class="s3">int}.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static int </span><span class="s1">green</span><span class="s2">(</span><span class="s0">int </span><span class="s1">rgb</span><span class="s2">) {</span>
+        <span class="s0">return </span><span class="s2">(</span><span class="s1">rgb </span><span class="s2">&gt;&gt; </span><span class="s5">8</span><span class="s2">) &amp; </span><span class="s5">0xFF</span><span class="s2">;</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Returns the 8-bit blue color component as an {</span><span class="s4">@code </span><span class="s3">int}.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">rgb 24-bit color represented as three 8-bit red-green-blue color components.</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">the 8-bit blue color component as an {</span><span class="s4">@code </span><span class="s3">int}.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static int </span><span class="s1">blue</span><span class="s2">(</span><span class="s0">int </span><span class="s1">rgb</span><span class="s2">) {</span>
+        <span class="s0">return </span><span class="s1">rgb </span><span class="s2">&amp; </span><span class="s5">0xFF</span><span class="s2">;</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public double </span><span class="s1">apply</span><span class="s2">(</span><span class="s1">Picture picture</span><span class="s2">, </span><span class="s0">int </span><span class="s1">x</span><span class="s2">, </span><span class="s0">int </span><span class="s1">y</span><span class="s2">) {</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">x </span><span class="s2">&lt; </span><span class="s5">0 </span><span class="s2">|| </span><span class="s1">y </span><span class="s2">&lt; </span><span class="s5">0 </span><span class="s2">|| </span><span class="s1">x </span><span class="s2">&gt;= </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">width</span><span class="s2">() || </span><span class="s1">y </span><span class="s2">&gt;= </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">height</span><span class="s2">()) {</span>
+            <span class="s0">throw new </span><span class="s1">IndexOutOfBoundsException</span><span class="s2">(</span><span class="s6">&quot;Invalid (&quot; </span><span class="s2">+ </span><span class="s1">x </span><span class="s2">+ </span><span class="s6">&quot;, &quot; </span><span class="s2">+ </span><span class="s1">y </span><span class="s2">+ </span><span class="s6">&quot;) for picture&quot;</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s0">return </span><span class="s1">Math</span><span class="s2">.</span><span class="s1">sqrt</span><span class="s2">(</span><span class="s1">horizontalDerivative</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">, </span><span class="s1">x</span><span class="s2">, </span><span class="s1">y</span><span class="s2">) + </span><span class="s1">verticalDerivative</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">, </span><span class="s1">x</span><span class="s2">, </span><span class="s1">y</span><span class="s2">));</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

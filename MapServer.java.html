@@ -1,0 +1,200 @@
+<html>
+<head>
+<title>MapServer.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #67a37c; font-style: italic;}
+.s5 { color: #2aacb8;}
+.s6 { color: #68a67e; font-style: italic;}
+.s7 { color: #6aab73;}
+.s8 { color: #7a7e85;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+MapServer.java</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">io</span><span class="s2">.</span><span class="s1">javalin</span><span class="s2">.</span><span class="s1">Javalin</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">io</span><span class="s2">.</span><span class="s1">javalin</span><span class="s2">.</span><span class="s1">validation</span><span class="s2">.</span><span class="s1">JavalinValidation</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">io</span><span class="s2">.</span><span class="s1">javalin</span><span class="s2">.</span><span class="s1">validation</span><span class="s2">.</span><span class="s1">Validator</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">org</span><span class="s2">.</span><span class="s1">apache</span><span class="s2">.</span><span class="s1">commons</span><span class="s2">.</span><span class="s1">codec</span><span class="s2">.</span><span class="s1">binary</span><span class="s2">.</span><span class="s1">Base64InputStream</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">org</span><span class="s2">.</span><span class="s1">locationtech</span><span class="s2">.</span><span class="s1">spatial4j</span><span class="s2">.</span><span class="s1">context</span><span class="s2">.</span><span class="s1">SpatialContext</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">org</span><span class="s2">.</span><span class="s1">locationtech</span><span class="s2">.</span><span class="s1">spatial4j</span><span class="s2">.</span><span class="s1">shape</span><span class="s2">.</span><span class="s1">Point</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">org</span><span class="s2">.</span><span class="s1">locationtech</span><span class="s2">.</span><span class="s1">spatial4j</span><span class="s2">.</span><span class="s1">shape</span><span class="s2">.</span><span class="s1">ShapeFactory</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">net</span><span class="s2">.</span><span class="s1">MalformedURLException</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">net</span><span class="s2">.</span><span class="s1">URL</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">net</span><span class="s2">.</span><span class="s1">URLEncoder</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">nio</span><span class="s2">.</span><span class="s1">charset</span><span class="s2">.</span><span class="s1">StandardCharsets</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">List</span><span class="s2">;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Run the Husky Maps server.</span>
+ <span class="s3">*</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">MapGraph</span>
+ <span class="s3">*/</span>
+<span class="s0">public class </span><span class="s1">MapServer </span><span class="s2">{</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Default port for serving the application locally.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static final int </span><span class="s1">PORT </span><span class="s2">= </span><span class="s5">8080</span><span class="s2">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* The OpenStreetMap XML file path.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@see </span><span class="s6">&lt;a href=&quot;https://download.bbbike.org/osm/&quot;&gt;</span><span class="s3">BBBike</span><span class="s6">&lt;/a&gt;</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static final </span><span class="s1">String OSM_DB_PATH </span><span class="s2">= </span><span class="s7">&quot;seattle.osm.gz&quot;</span><span class="s2">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* The place-importance TSV data file path from OpenStreetMap.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static final </span><span class="s1">String PLACES_PATH </span><span class="s2">= </span><span class="s7">&quot;places.tsv&quot;</span><span class="s2">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Maximum number of autocomplete search results.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static final int </span><span class="s1">MAX_MATCHES </span><span class="s2">= </span><span class="s5">10</span><span class="s2">;</span>
+
+    <span class="s0">public static void </span><span class="s1">main</span><span class="s2">(</span><span class="s1">String</span><span class="s2">[] </span><span class="s1">args</span><span class="s2">) </span><span class="s0">throws </span><span class="s1">Exception </span><span class="s2">{</span>
+        <span class="s1">SpatialContext context </span><span class="s2">= </span><span class="s1">SpatialContext</span><span class="s2">.</span><span class="s1">GEO</span><span class="s2">;</span>
+        <span class="s1">ShapeFactory factory </span><span class="s2">= </span><span class="s1">context</span><span class="s2">.</span><span class="s1">getShapeFactory</span><span class="s2">();</span>
+        <span class="s1">MapGraph map </span><span class="s2">= </span><span class="s0">new </span><span class="s1">MapGraph</span><span class="s2">(</span><span class="s1">OSM_DB_PATH</span><span class="s2">, </span><span class="s1">PLACES_PATH</span><span class="s2">, </span><span class="s1">context</span><span class="s2">);</span>
+        <span class="s1">Javalin app </span><span class="s2">= </span><span class="s1">Javalin</span><span class="s2">.</span><span class="s1">create</span><span class="s2">(</span><span class="s1">config -&gt; </span><span class="s2">{</span>
+            <span class="s1">config</span><span class="s2">.</span><span class="s1">spaRoot</span><span class="s2">.</span><span class="s1">addFile</span><span class="s2">(</span><span class="s7">&quot;/&quot;</span><span class="s2">, </span><span class="s7">&quot;index.html&quot;</span><span class="s2">);</span>
+        <span class="s2">}).</span><span class="s1">start</span><span class="s2">(</span><span class="s1">port</span><span class="s2">());</span>
+        <span class="s1">app</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s7">&quot;/map/{lon},{lat},{zoom}/{width}x{height}&quot;</span><span class="s2">, </span><span class="s1">ctx -&gt; </span><span class="s2">{</span>
+            <span class="s0">double </span><span class="s1">lon </span><span class="s2">= </span><span class="s1">ctx</span><span class="s2">.</span><span class="s1">pathParamAsClass</span><span class="s2">(</span><span class="s7">&quot;lon&quot;</span><span class="s2">, </span><span class="s1">Double</span><span class="s2">.</span><span class="s0">class</span><span class="s2">).</span><span class="s1">get</span><span class="s2">();</span>
+            <span class="s0">double </span><span class="s1">lat </span><span class="s2">= </span><span class="s1">ctx</span><span class="s2">.</span><span class="s1">pathParamAsClass</span><span class="s2">(</span><span class="s7">&quot;lat&quot;</span><span class="s2">, </span><span class="s1">Double</span><span class="s2">.</span><span class="s0">class</span><span class="s2">).</span><span class="s1">get</span><span class="s2">();</span>
+            <span class="s0">int </span><span class="s1">zoom </span><span class="s2">= </span><span class="s1">ctx</span><span class="s2">.</span><span class="s1">pathParamAsClass</span><span class="s2">(</span><span class="s7">&quot;zoom&quot;</span><span class="s2">, </span><span class="s1">Integer</span><span class="s2">.</span><span class="s0">class</span><span class="s2">).</span><span class="s1">get</span><span class="s2">();</span>
+            <span class="s0">int </span><span class="s1">width </span><span class="s2">= </span><span class="s1">ctx</span><span class="s2">.</span><span class="s1">pathParamAsClass</span><span class="s2">(</span><span class="s7">&quot;width&quot;</span><span class="s2">, </span><span class="s1">Integer</span><span class="s2">.</span><span class="s0">class</span><span class="s2">).</span><span class="s1">get</span><span class="s2">();</span>
+            <span class="s0">int </span><span class="s1">height </span><span class="s2">= </span><span class="s1">ctx</span><span class="s2">.</span><span class="s1">pathParamAsClass</span><span class="s2">(</span><span class="s7">&quot;height&quot;</span><span class="s2">, </span><span class="s1">Integer</span><span class="s2">.</span><span class="s0">class</span><span class="s2">).</span><span class="s1">get</span><span class="s2">();</span>
+            <span class="s1">String term </span><span class="s2">= </span><span class="s1">ctx</span><span class="s2">.</span><span class="s1">queryParam</span><span class="s2">(</span><span class="s7">&quot;term&quot;</span><span class="s2">);</span>
+            <span class="s1">Validator</span><span class="s2">&lt;</span><span class="s1">Double</span><span class="s2">&gt; </span><span class="s1">startLon </span><span class="s2">= </span><span class="s1">ctx</span><span class="s2">.</span><span class="s1">queryParamAsClass</span><span class="s2">(</span><span class="s7">&quot;startLon&quot;</span><span class="s2">, </span><span class="s1">Double</span><span class="s2">.</span><span class="s0">class</span><span class="s2">);</span>
+            <span class="s1">Validator</span><span class="s2">&lt;</span><span class="s1">Double</span><span class="s2">&gt; </span><span class="s1">startLat </span><span class="s2">= </span><span class="s1">ctx</span><span class="s2">.</span><span class="s1">queryParamAsClass</span><span class="s2">(</span><span class="s7">&quot;startLat&quot;</span><span class="s2">, </span><span class="s1">Double</span><span class="s2">.</span><span class="s0">class</span><span class="s2">);</span>
+            <span class="s1">Validator</span><span class="s2">&lt;</span><span class="s1">Double</span><span class="s2">&gt; </span><span class="s1">goalLon </span><span class="s2">= </span><span class="s1">ctx</span><span class="s2">.</span><span class="s1">queryParamAsClass</span><span class="s2">(</span><span class="s7">&quot;goalLon&quot;</span><span class="s2">, </span><span class="s1">Double</span><span class="s2">.</span><span class="s0">class</span><span class="s2">);</span>
+            <span class="s1">Validator</span><span class="s2">&lt;</span><span class="s1">Double</span><span class="s2">&gt; </span><span class="s1">goalLat </span><span class="s2">= </span><span class="s1">ctx</span><span class="s2">.</span><span class="s1">queryParamAsClass</span><span class="s2">(</span><span class="s7">&quot;goalLat&quot;</span><span class="s2">, </span><span class="s1">Double</span><span class="s2">.</span><span class="s0">class</span><span class="s2">);</span>
+
+            <span class="s1">Point center </span><span class="s2">= </span><span class="s1">factory</span><span class="s2">.</span><span class="s1">pointLatLon</span><span class="s2">(</span><span class="s1">lat</span><span class="s2">, </span><span class="s1">lon</span><span class="s2">);</span>
+            <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Point</span><span class="s2">&gt; </span><span class="s1">route </span><span class="s2">= </span><span class="s1">List</span><span class="s2">.</span><span class="s1">of</span><span class="s2">();</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">JavalinValidation</span><span class="s2">.</span><span class="s1">collectErrors</span><span class="s2">(</span><span class="s1">startLon</span><span class="s2">, </span><span class="s1">startLat</span><span class="s2">, </span><span class="s1">goalLon</span><span class="s2">, </span><span class="s1">goalLat</span><span class="s2">).</span><span class="s1">isEmpty</span><span class="s2">()) {</span>
+                <span class="s1">Point start </span><span class="s2">= </span><span class="s1">factory</span><span class="s2">.</span><span class="s1">pointLatLon</span><span class="s2">(</span><span class="s1">startLat</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(), </span><span class="s1">startLon</span><span class="s2">.</span><span class="s1">get</span><span class="s2">());</span>
+                <span class="s1">Point goal </span><span class="s2">= </span><span class="s1">factory</span><span class="s2">.</span><span class="s1">pointLatLon</span><span class="s2">(</span><span class="s1">goalLat</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(), </span><span class="s1">goalLon</span><span class="s2">.</span><span class="s1">get</span><span class="s2">());</span>
+                <span class="s1">route </span><span class="s2">= </span><span class="s1">map</span><span class="s2">.</span><span class="s1">shortestPath</span><span class="s2">(</span><span class="s1">start</span><span class="s2">, </span><span class="s1">goal</span><span class="s2">);</span>
+            <span class="s2">}</span>
+            <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Point</span><span class="s2">&gt; </span><span class="s1">locations </span><span class="s2">= </span><span class="s1">map</span><span class="s2">.</span><span class="s1">getLocations</span><span class="s2">(</span><span class="s1">term</span><span class="s2">);</span>
+            <span class="s1">URL staticImageURL </span><span class="s2">= </span><span class="s1">url</span><span class="s2">(</span><span class="s1">center</span><span class="s2">, </span><span class="s1">zoom</span><span class="s2">, </span><span class="s1">width</span><span class="s2">, </span><span class="s1">height</span><span class="s2">, </span><span class="s1">route</span><span class="s2">, </span><span class="s1">locations</span><span class="s2">);</span>
+            <span class="s1">ctx</span><span class="s2">.</span><span class="s1">result</span><span class="s2">(</span><span class="s0">new </span><span class="s1">Base64InputStream</span><span class="s2">(</span><span class="s1">staticImageURL</span><span class="s2">.</span><span class="s1">openStream</span><span class="s2">(), </span><span class="s0">true</span><span class="s2">));</span>
+        <span class="s2">});</span>
+        <span class="s1">app</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s7">&quot;/search&quot;</span><span class="s2">, </span><span class="s1">ctx -&gt; </span><span class="s2">{</span>
+            <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">CharSequence</span><span class="s2">&gt; </span><span class="s1">result </span><span class="s2">= </span><span class="s1">map</span><span class="s2">.</span><span class="s1">getLocationsByPrefix</span><span class="s2">(</span><span class="s1">ctx</span><span class="s2">.</span><span class="s1">queryParam</span><span class="s2">(</span><span class="s7">&quot;term&quot;</span><span class="s2">));</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">result</span><span class="s2">.</span><span class="s1">size</span><span class="s2">() &gt; </span><span class="s1">MAX_MATCHES</span><span class="s2">) {</span>
+                <span class="s1">result </span><span class="s2">= </span><span class="s1">result</span><span class="s2">.</span><span class="s1">subList</span><span class="s2">(</span><span class="s5">0</span><span class="s2">, </span><span class="s1">MAX_MATCHES</span><span class="s2">);</span>
+            <span class="s2">}</span>
+            <span class="s1">ctx</span><span class="s2">.</span><span class="s1">json</span><span class="s2">(</span><span class="s1">result</span><span class="s2">);</span>
+        <span class="s2">});</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Returns the port for communicating with the server.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">the port for communicating with the server.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static int </span><span class="s1">port</span><span class="s2">() {</span>
+        <span class="s1">String port </span><span class="s2">= </span><span class="s1">System</span><span class="s2">.</span><span class="s1">getenv</span><span class="s2">(</span><span class="s7">&quot;PORT&quot;</span><span class="s2">);</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">port </span><span class="s2">!= </span><span class="s0">null</span><span class="s2">) {</span>
+            <span class="s0">return </span><span class="s1">Integer</span><span class="s2">.</span><span class="s1">parseInt</span><span class="s2">(</span><span class="s1">port</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s0">return </span><span class="s1">PORT</span><span class="s2">;</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Return the API URL for retrieving the map image.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">center    the center of the map image.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">width     the width of the window.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">height    the height of the window.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">route     the list of route points (or null).</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">locations the list of locations (or null).</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">the URL for retrieving the map image.</span>
+     <span class="s3">* </span><span class="s4">@throws </span><span class="s3">MalformedURLException if the URL is invalid.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static </span><span class="s1">URL url</span><span class="s2">(</span><span class="s1">Point center</span><span class="s2">, </span><span class="s0">int </span><span class="s1">zoom</span><span class="s2">, </span><span class="s0">int </span><span class="s1">width</span><span class="s2">, </span><span class="s0">int </span><span class="s1">height</span><span class="s2">, </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Point</span><span class="s2">&gt; </span><span class="s1">route</span><span class="s2">, </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Point</span><span class="s2">&gt; </span><span class="s1">locations</span><span class="s2">)</span>
+            <span class="s0">throws </span><span class="s1">MalformedURLException </span><span class="s2">{</span>
+        <span class="s1">StringBuilder overlay </span><span class="s2">= </span><span class="s0">new </span><span class="s1">StringBuilder</span><span class="s2">();</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">route </span><span class="s2">!= </span><span class="s0">null </span><span class="s2">&amp;&amp; !</span><span class="s1">route</span><span class="s2">.</span><span class="s1">isEmpty</span><span class="s2">()) {</span>
+            <span class="s1">overlay</span><span class="s2">.</span><span class="s1">append</span><span class="s2">(</span><span class="s7">&quot;path-4+6cb5e6-1(&quot;</span><span class="s2">);</span>
+            <span class="s1">overlay</span><span class="s2">.</span><span class="s1">append</span><span class="s2">(</span><span class="s1">URLEncoder</span><span class="s2">.</span><span class="s1">encode</span><span class="s2">(</span><span class="s1">encode</span><span class="s2">(</span><span class="s1">route</span><span class="s2">), </span><span class="s1">StandardCharsets</span><span class="s2">.</span><span class="s1">UTF_8</span><span class="s2">));</span>
+            <span class="s1">overlay</span><span class="s2">.</span><span class="s1">append</span><span class="s2">(</span><span class="s7">&quot;),&quot;</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">locations </span><span class="s2">!= </span><span class="s0">null </span><span class="s2">&amp;&amp; !</span><span class="s1">locations</span><span class="s2">.</span><span class="s1">isEmpty</span><span class="s2">()) {</span>
+            <span class="s0">for </span><span class="s2">(</span><span class="s1">Point location </span><span class="s2">: </span><span class="s1">locations</span><span class="s2">) {</span>
+                <span class="s1">overlay</span><span class="s2">.</span><span class="s1">append</span><span class="s2">(</span><span class="s7">&quot;pin-s(&quot;</span><span class="s2">);</span>
+                <span class="s1">overlay</span><span class="s2">.</span><span class="s1">append</span><span class="s2">(</span><span class="s1">location</span><span class="s2">.</span><span class="s1">getLon</span><span class="s2">());</span>
+                <span class="s1">overlay</span><span class="s2">.</span><span class="s1">append</span><span class="s2">(</span><span class="s7">','</span><span class="s2">);</span>
+                <span class="s1">overlay</span><span class="s2">.</span><span class="s1">append</span><span class="s2">(</span><span class="s1">location</span><span class="s2">.</span><span class="s1">getLat</span><span class="s2">());</span>
+                <span class="s1">overlay</span><span class="s2">.</span><span class="s1">append</span><span class="s2">(</span><span class="s7">&quot;),&quot;</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">overlay</span><span class="s2">.</span><span class="s1">length</span><span class="s2">() &gt; </span><span class="s5">0</span><span class="s2">) {</span>
+            <span class="s8">// Replace the trailing comma with a forward slash</span>
+            <span class="s1">overlay</span><span class="s2">.</span><span class="s1">setCharAt</span><span class="s2">(</span><span class="s1">overlay</span><span class="s2">.</span><span class="s1">length</span><span class="s2">() - </span><span class="s5">1</span><span class="s2">, </span><span class="s7">'/'</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s0">return new </span><span class="s1">URL</span><span class="s2">(</span><span class="s1">String</span><span class="s2">.</span><span class="s1">format</span><span class="s2">(</span>
+                <span class="s7">&quot;https://api.mapbox.com/&quot;</span>
+                        <span class="s8">// {username}/{style_id} and {overlay} (must include trailing slash)</span>
+                        <span class="s2">+ </span><span class="s7">&quot;styles/v1/%s/%s/static/%s&quot;</span>
+                        <span class="s8">// {lon},{lat},{zoom}/{width}x{height}{@2x}</span>
+                        <span class="s2">+ </span><span class="s7">&quot;%f,%f,%d/%dx%d%s&quot;</span>
+                        <span class="s8">// Access token and optional parameters</span>
+                        <span class="s2">+ </span><span class="s7">&quot;?access_token=%s&amp;logo=false&amp;attribution=false&quot;</span><span class="s2">,</span>
+                <span class="s7">&quot;mapbox&quot;</span><span class="s2">,</span>
+                <span class="s7">&quot;cj7t3i5yj0unt2rmt3y4b5e32&quot;</span><span class="s2">,</span>
+                <span class="s1">overlay</span><span class="s2">,</span>
+                <span class="s1">center</span><span class="s2">.</span><span class="s1">getLon</span><span class="s2">(), </span><span class="s1">center</span><span class="s2">.</span><span class="s1">getLat</span><span class="s2">(), </span><span class="s1">zoom</span><span class="s2">,</span>
+                <span class="s2">(</span><span class="s0">int</span><span class="s2">) </span><span class="s1">Math</span><span class="s2">.</span><span class="s1">ceil</span><span class="s2">(</span><span class="s1">width </span><span class="s2">/ </span><span class="s5">2.</span><span class="s2">), (</span><span class="s0">int</span><span class="s2">) </span><span class="s1">Math</span><span class="s2">.</span><span class="s1">ceil</span><span class="s2">(</span><span class="s1">height </span><span class="s2">/ </span><span class="s5">2.</span><span class="s2">), </span><span class="s7">&quot;@2x&quot;</span><span class="s2">,</span>
+                <span class="s1">System</span><span class="s2">.</span><span class="s1">getenv</span><span class="s2">(</span><span class="s7">&quot;TOKEN&quot;</span><span class="s2">)</span>
+        <span class="s2">));</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Returns an encoded route string.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">route list of points representing the route to encode.</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">an encoded route string.</span>
+     <span class="s3">* </span><span class="s4">@see </span><span class="s6">&lt;a href=&quot;https://github.com/mapbox/mapbox-java&quot;&gt;</span><span class="s3">MapBox PolylineUtils</span><span class="s6">&lt;/a&gt;</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static </span><span class="s1">String encode</span><span class="s2">(</span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Point</span><span class="s2">&gt; </span><span class="s1">route</span><span class="s2">) {</span>
+        <span class="s1">StringBuilder result </span><span class="s2">= </span><span class="s0">new </span><span class="s1">StringBuilder</span><span class="s2">();</span>
+        <span class="s0">long </span><span class="s1">lastLat </span><span class="s2">= </span><span class="s5">0</span><span class="s2">;</span>
+        <span class="s0">long </span><span class="s1">lastLon </span><span class="s2">= </span><span class="s5">0</span><span class="s2">;</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s1">Point point </span><span class="s2">: </span><span class="s1">route</span><span class="s2">) {</span>
+            <span class="s0">long </span><span class="s1">lat </span><span class="s2">= </span><span class="s1">Math</span><span class="s2">.</span><span class="s1">round</span><span class="s2">(</span><span class="s1">point</span><span class="s2">.</span><span class="s1">getLat</span><span class="s2">() * </span><span class="s5">1e5</span><span class="s2">);</span>
+            <span class="s0">long </span><span class="s1">diffLat </span><span class="s2">= </span><span class="s1">lat </span><span class="s2">- </span><span class="s1">lastLat</span><span class="s2">;</span>
+            <span class="s1">diffLat </span><span class="s2">= </span><span class="s1">diffLat </span><span class="s2">&lt; </span><span class="s5">0 </span><span class="s2">? ~(</span><span class="s1">diffLat </span><span class="s2">&lt;&lt; </span><span class="s5">1</span><span class="s2">) : </span><span class="s1">diffLat </span><span class="s2">&lt;&lt; </span><span class="s5">1</span><span class="s2">;</span>
+            <span class="s0">while </span><span class="s2">(</span><span class="s1">diffLat </span><span class="s2">&gt;= </span><span class="s5">0x20</span><span class="s2">) {</span>
+                <span class="s1">result</span><span class="s2">.</span><span class="s1">append</span><span class="s2">(</span><span class="s1">Character</span><span class="s2">.</span><span class="s1">toChars</span><span class="s2">((</span><span class="s0">int</span><span class="s2">) ((</span><span class="s5">0x20 </span><span class="s2">| (</span><span class="s1">diffLat </span><span class="s2">&amp; </span><span class="s5">0x1f</span><span class="s2">)) + </span><span class="s5">63</span><span class="s2">)));</span>
+                <span class="s1">diffLat </span><span class="s2">&gt;&gt;= </span><span class="s5">5</span><span class="s2">;</span>
+            <span class="s2">}</span>
+            <span class="s1">result</span><span class="s2">.</span><span class="s1">append</span><span class="s2">(</span><span class="s1">Character</span><span class="s2">.</span><span class="s1">toChars</span><span class="s2">((</span><span class="s0">int</span><span class="s2">) (</span><span class="s1">diffLat </span><span class="s2">+ </span><span class="s5">63</span><span class="s2">)));</span>
+            <span class="s1">lastLat </span><span class="s2">= </span><span class="s1">lat</span><span class="s2">;</span>
+
+            <span class="s0">long </span><span class="s1">lon </span><span class="s2">= </span><span class="s1">Math</span><span class="s2">.</span><span class="s1">round</span><span class="s2">(</span><span class="s1">point</span><span class="s2">.</span><span class="s1">getLon</span><span class="s2">() * </span><span class="s5">1e5</span><span class="s2">);</span>
+            <span class="s0">long </span><span class="s1">diffLon </span><span class="s2">= </span><span class="s1">lon </span><span class="s2">- </span><span class="s1">lastLon</span><span class="s2">;</span>
+            <span class="s1">diffLon </span><span class="s2">= </span><span class="s1">diffLon </span><span class="s2">&lt; </span><span class="s5">0 </span><span class="s2">? ~(</span><span class="s1">diffLon </span><span class="s2">&lt;&lt; </span><span class="s5">1</span><span class="s2">) : </span><span class="s1">diffLon </span><span class="s2">&lt;&lt; </span><span class="s5">1</span><span class="s2">;</span>
+            <span class="s0">while </span><span class="s2">(</span><span class="s1">diffLon </span><span class="s2">&gt;= </span><span class="s5">0x20</span><span class="s2">) {</span>
+                <span class="s1">result</span><span class="s2">.</span><span class="s1">append</span><span class="s2">(</span><span class="s1">Character</span><span class="s2">.</span><span class="s1">toChars</span><span class="s2">((</span><span class="s0">int</span><span class="s2">) ((</span><span class="s5">0x20 </span><span class="s2">| (</span><span class="s1">diffLon </span><span class="s2">&amp; </span><span class="s5">0x1f</span><span class="s2">)) + </span><span class="s5">63</span><span class="s2">)));</span>
+                <span class="s1">diffLon </span><span class="s2">&gt;&gt;= </span><span class="s5">5</span><span class="s2">;</span>
+            <span class="s2">}</span>
+            <span class="s1">result</span><span class="s2">.</span><span class="s1">append</span><span class="s2">(</span><span class="s1">Character</span><span class="s2">.</span><span class="s1">toChars</span><span class="s2">((</span><span class="s0">int</span><span class="s2">) (</span><span class="s1">diffLon </span><span class="s2">+ </span><span class="s5">63</span><span class="s2">)));</span>
+            <span class="s1">lastLon </span><span class="s2">= </span><span class="s1">lon</span><span class="s2">;</span>
+        <span class="s2">}</span>
+        <span class="s0">return </span><span class="s1">result</span><span class="s2">.</span><span class="s1">toString</span><span class="s2">();</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

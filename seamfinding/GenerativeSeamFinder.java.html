@@ -1,0 +1,207 @@
+<html>
+<head>
+<title>GenerativeSeamFinder.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #67a37c; font-style: italic;}
+.s5 { color: #2aacb8;}
+.s6 { color: #7a7e85;}
+.s7 { color: #68a67e; font-style: italic;}
+.s8 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+GenerativeSeamFinder.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">seamfinding</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">graphs</span><span class="s2">.</span><span class="s1">Edge</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">graphs</span><span class="s2">.</span><span class="s1">Graph</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">graphs</span><span class="s2">.</span><span class="s1">shortestpaths</span><span class="s2">.</span><span class="s1">ShortestPathSolver</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">seamfinding</span><span class="s2">.</span><span class="s1">energy</span><span class="s2">.</span><span class="s1">EnergyFunction</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">ArrayList</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Collections</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">List</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Objects</span><span class="s2">;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Generative adjacency list graph single-source {</span><span class="s4">@link </span><span class="s3">ShortestPathSolver} implementation of the {</span><span class="s4">@link </span><span class="s3">SeamFinder}</span>
+ <span class="s3">* interface.</span>
+ <span class="s3">*</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">Graph</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">ShortestPathSolver</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">SeamFinder</span>
+ <span class="s3">*/</span>
+<span class="s0">public class </span><span class="s1">GenerativeSeamFinder </span><span class="s0">implements </span><span class="s1">SeamFinder </span><span class="s2">{</span>
+    <span class="s3">/**</span>
+     <span class="s3">* The constructor for the {</span><span class="s4">@link </span><span class="s3">ShortestPathSolver} implementation.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private final </span><span class="s1">ShortestPathSolver</span><span class="s2">.</span><span class="s1">Constructor</span><span class="s2">&lt;</span><span class="s1">Node</span><span class="s2">&gt; </span><span class="s1">sps</span><span class="s2">;</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Constructs an instance with the given {</span><span class="s4">@link </span><span class="s3">ShortestPathSolver} implementation.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">sps the {</span><span class="s4">@link </span><span class="s3">ShortestPathSolver} implementation.</span>
+     <span class="s3">*/</span>
+    <span class="s0">public </span><span class="s1">GenerativeSeamFinder</span><span class="s2">(</span><span class="s1">ShortestPathSolver</span><span class="s2">.</span><span class="s1">Constructor</span><span class="s2">&lt;</span><span class="s1">Node</span><span class="s2">&gt; </span><span class="s1">sps</span><span class="s2">) {</span>
+        <span class="s0">this</span><span class="s2">.</span><span class="s1">sps </span><span class="s2">= </span><span class="s1">sps</span><span class="s2">;</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">findHorizontal</span><span class="s2">(</span><span class="s1">Picture picture</span><span class="s2">, </span><span class="s1">EnergyFunction f</span><span class="s2">) {</span>
+        <span class="s1">PixelGraph graph </span><span class="s2">= </span><span class="s0">new </span><span class="s1">PixelGraph</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">, </span><span class="s1">f</span><span class="s2">);</span>
+        <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Node</span><span class="s2">&gt; </span><span class="s1">seam </span><span class="s2">= </span><span class="s1">sps</span><span class="s2">.</span><span class="s1">run</span><span class="s2">(</span><span class="s1">graph</span><span class="s2">, </span><span class="s1">graph</span><span class="s2">.</span><span class="s1">source</span><span class="s2">).</span><span class="s1">solution</span><span class="s2">(</span><span class="s1">graph</span><span class="s2">.</span><span class="s1">sink</span><span class="s2">);</span>
+        <span class="s1">seam </span><span class="s2">= </span><span class="s1">seam</span><span class="s2">.</span><span class="s1">subList</span><span class="s2">(</span><span class="s5">1</span><span class="s2">, </span><span class="s1">seam</span><span class="s2">.</span><span class="s1">size</span><span class="s2">() - </span><span class="s5">1</span><span class="s2">); </span><span class="s6">// Skip the source and sink nodes</span>
+        <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Integer</span><span class="s2">&gt; </span><span class="s1">result </span><span class="s2">= </span><span class="s0">new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;(</span><span class="s1">seam</span><span class="s2">.</span><span class="s1">size</span><span class="s2">());</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s1">Node node </span><span class="s2">: </span><span class="s1">seam</span><span class="s2">) {</span>
+            <span class="s6">// All remaining nodes must be Pixels</span>
+            <span class="s1">PixelGraph</span><span class="s2">.</span><span class="s1">Pixel pixel </span><span class="s2">= (</span><span class="s1">PixelGraph</span><span class="s2">.</span><span class="s1">Pixel</span><span class="s2">) </span><span class="s1">node</span><span class="s2">;</span>
+            <span class="s1">result</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">pixel</span><span class="s2">.</span><span class="s1">y</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s0">return </span><span class="s1">result</span><span class="s2">;</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Generative adjacency list graph of {</span><span class="s4">@link </span><span class="s3">Pixel} vertices and {</span><span class="s4">@link </span><span class="s3">EnergyFunction}-weighted edges. Rather than</span>
+     <span class="s3">* materialize all vertices and edges upfront in the constructor, generates vertices and edges as needed when</span>
+     <span class="s3">* {</span><span class="s4">@link </span><span class="s3">#neighbors(Node)} is called by a client.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@see </span><span class="s3">Pixel</span>
+     <span class="s3">* </span><span class="s4">@see </span><span class="s3">EnergyFunction</span>
+     <span class="s3">*/</span>
+    <span class="s0">private static class </span><span class="s1">PixelGraph </span><span class="s0">implements </span><span class="s1">Graph</span><span class="s2">&lt;</span><span class="s1">Node</span><span class="s2">&gt; {</span>
+        <span class="s3">/**</span>
+         <span class="s3">* The {</span><span class="s4">@link </span><span class="s3">Picture} for {</span><span class="s4">@link </span><span class="s3">#neighbors(Node)}.</span>
+         <span class="s3">*/</span>
+        <span class="s0">private final </span><span class="s1">Picture picture</span><span class="s2">;</span>
+        <span class="s3">/**</span>
+         <span class="s3">* The {</span><span class="s4">@link </span><span class="s3">EnergyFunction} for {</span><span class="s4">@link </span><span class="s3">#neighbors(Node)}.</span>
+         <span class="s3">*/</span>
+        <span class="s0">private final </span><span class="s1">EnergyFunction f</span><span class="s2">;</span>
+        <span class="s3">/**</span>
+         <span class="s3">* Source {</span><span class="s4">@link </span><span class="s3">Node} for the adjacency list graph.</span>
+         <span class="s3">*/</span>
+        <span class="s0">private final </span><span class="s1">Node source </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Node</span><span class="s2">() {</span>
+            <span class="s1">@Override</span>
+            <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Edge</span><span class="s2">&lt;</span><span class="s1">Node</span><span class="s2">&gt;&gt; </span><span class="s1">neighbors</span><span class="s2">(</span><span class="s1">Picture picture</span><span class="s2">, </span><span class="s1">EnergyFunction f</span><span class="s2">) {</span>
+
+                <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Edge</span><span class="s2">&lt;</span><span class="s1">Node</span><span class="s2">&gt;&gt; </span><span class="s1">edges </span><span class="s2">= </span><span class="s0">new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;();</span>
+                <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">y </span><span class="s2">= </span><span class="s5">0</span><span class="s2">; </span><span class="s1">y </span><span class="s2">&lt; </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">height</span><span class="s2">(); </span><span class="s1">y</span><span class="s2">++) {</span>
+                    <span class="s1">Pixel pixel </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Pixel</span><span class="s2">(</span><span class="s5">0</span><span class="s2">, </span><span class="s1">y</span><span class="s2">); </span><span class="s6">// Pixel in the first column</span>
+                    <span class="s0">double </span><span class="s1">weight </span><span class="s2">= </span><span class="s1">f</span><span class="s2">.</span><span class="s1">apply</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">, </span><span class="s5">0</span><span class="s2">, </span><span class="s1">y</span><span class="s2">); </span><span class="s6">// Energy of this pixel</span>
+                    <span class="s1">edges</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s0">new </span><span class="s1">Edge</span><span class="s2">&lt;&gt;(</span><span class="s0">this</span><span class="s2">, </span><span class="s1">pixel</span><span class="s2">, </span><span class="s1">weight</span><span class="s2">)); </span><span class="s6">// Edge from source to this pixel</span>
+                <span class="s2">}</span>
+                <span class="s0">return </span><span class="s1">edges</span><span class="s2">;</span>
+
+            <span class="s2">}</span>
+        <span class="s2">};</span>
+        <span class="s3">/**</span>
+         <span class="s3">* Sink {</span><span class="s4">@link </span><span class="s3">Node} for the adjacency list graph.</span>
+         <span class="s3">*/</span>
+        <span class="s0">private final </span><span class="s1">Node sink </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Node</span><span class="s2">() {</span>
+            <span class="s1">@Override</span>
+            <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Edge</span><span class="s2">&lt;</span><span class="s1">Node</span><span class="s2">&gt;&gt; </span><span class="s1">neighbors</span><span class="s2">(</span><span class="s1">Picture picture</span><span class="s2">, </span><span class="s1">EnergyFunction f</span><span class="s2">) {</span>
+
+                <span class="s0">return </span><span class="s1">Collections</span><span class="s2">.</span><span class="s1">emptyList</span><span class="s2">();</span>
+
+            <span class="s2">}</span>
+        <span class="s2">};</span>
+
+        <span class="s3">/**</span>
+         <span class="s3">* Constructs a generative adjacency list graph. All work is deferred to implementations of</span>
+         <span class="s3">* {</span><span class="s4">@link </span><span class="s3">Node#neighbors(Picture, EnergyFunction)}.</span>
+         <span class="s3">*</span>
+         <span class="s3">* </span><span class="s4">@param </span><span class="s3">picture the input picture.</span>
+         <span class="s3">* </span><span class="s4">@param </span><span class="s3">f       the input energy function.</span>
+         <span class="s3">*/</span>
+        <span class="s0">private </span><span class="s1">PixelGraph</span><span class="s2">(</span><span class="s1">Picture picture</span><span class="s2">, </span><span class="s1">EnergyFunction f</span><span class="s2">) {</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">picture </span><span class="s2">= </span><span class="s1">picture</span><span class="s2">;</span>
+            <span class="s0">this</span><span class="s2">.</span><span class="s1">f </span><span class="s2">= </span><span class="s1">f</span><span class="s2">;</span>
+        <span class="s2">}</span>
+
+        <span class="s1">@Override</span>
+        <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Edge</span><span class="s2">&lt;</span><span class="s1">Node</span><span class="s2">&gt;&gt; </span><span class="s1">neighbors</span><span class="s2">(</span><span class="s1">Node node</span><span class="s2">) {</span>
+            <span class="s0">return </span><span class="s1">node</span><span class="s2">.</span><span class="s1">neighbors</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">, </span><span class="s1">f</span><span class="s2">);</span>
+        <span class="s2">}</span>
+
+        <span class="s3">/**</span>
+         <span class="s3">* A pixel in the {</span><span class="s4">@link </span><span class="s3">PixelGraph} representation of the {</span><span class="s4">@link </span><span class="s3">Picture} with {</span><span class="s4">@link </span><span class="s3">EnergyFunction}-weighted</span>
+         <span class="s3">* edges to neighbors.</span>
+         <span class="s3">*</span>
+         <span class="s3">* </span><span class="s4">@see </span><span class="s3">PixelGraph</span>
+         <span class="s3">* </span><span class="s4">@see </span><span class="s3">Picture</span>
+         <span class="s3">* </span><span class="s4">@see </span><span class="s3">EnergyFunction</span>
+         <span class="s3">*/</span>
+        <span class="s0">public class </span><span class="s1">Pixel </span><span class="s0">implements </span><span class="s1">Node </span><span class="s2">{</span>
+            <span class="s0">private final int </span><span class="s1">x</span><span class="s2">;</span>
+            <span class="s0">private final int </span><span class="s1">y</span><span class="s2">;</span>
+
+            <span class="s3">/**</span>
+             <span class="s3">* Constructs a pixel representing the (</span><span class="s7">&lt;i&gt;</span><span class="s3">x</span><span class="s7">&lt;/i&gt;</span><span class="s3">, </span><span class="s7">&lt;i&gt;</span><span class="s3">y</span><span class="s7">&lt;/i&gt;</span><span class="s3">) indices in the picture.</span>
+             <span class="s3">*</span>
+             <span class="s3">* </span><span class="s4">@param </span><span class="s3">x horizontal index into the picture.</span>
+             <span class="s3">* </span><span class="s4">@param </span><span class="s3">y vertical index into the picture.</span>
+             <span class="s3">*/</span>
+            <span class="s0">public </span><span class="s1">Pixel</span><span class="s2">(</span><span class="s0">int </span><span class="s1">x</span><span class="s2">, </span><span class="s0">int </span><span class="s1">y</span><span class="s2">) {</span>
+                <span class="s0">this</span><span class="s2">.</span><span class="s1">x </span><span class="s2">= </span><span class="s1">x</span><span class="s2">;</span>
+                <span class="s0">this</span><span class="s2">.</span><span class="s1">y </span><span class="s2">= </span><span class="s1">y</span><span class="s2">;</span>
+            <span class="s2">}</span>
+
+            <span class="s1">@Override</span>
+            <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Edge</span><span class="s2">&lt;</span><span class="s1">Node</span><span class="s2">&gt;&gt; </span><span class="s1">neighbors</span><span class="s2">(</span><span class="s1">Picture picture</span><span class="s2">, </span><span class="s1">EnergyFunction f</span><span class="s2">) {</span>
+
+                <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Edge</span><span class="s2">&lt;</span><span class="s1">Node</span><span class="s2">&gt;&gt; </span><span class="s1">neighbors </span><span class="s2">= </span><span class="s0">new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;();</span>
+
+                <span class="s6">// If this pixel is in the last column, connect it to the sink</span>
+                <span class="s0">if </span><span class="s2">(</span><span class="s0">this</span><span class="s2">.</span><span class="s1">x </span><span class="s2">== </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">width</span><span class="s2">() - </span><span class="s5">1</span><span class="s2">) {</span>
+                    <span class="s1">neighbors</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s0">new </span><span class="s1">Edge</span><span class="s2">&lt;&gt;(</span><span class="s0">this</span><span class="s2">, </span><span class="s1">sink</span><span class="s2">, </span><span class="s5">0</span><span class="s2">));</span>
+                    <span class="s0">return </span><span class="s1">neighbors</span><span class="s2">;</span>
+                <span class="s2">}</span>
+
+                <span class="s6">// Generate neighbors for pixels in the next column (right side)</span>
+                <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">dy </span><span class="s2">: </span><span class="s0">new int</span><span class="s2">[]{-</span><span class="s5">1</span><span class="s2">, </span><span class="s5">0</span><span class="s2">, </span><span class="s5">1</span><span class="s2">}) { </span><span class="s6">// Up, straight, and down</span>
+                    <span class="s0">int </span><span class="s1">newY </span><span class="s2">= </span><span class="s0">this</span><span class="s2">.</span><span class="s1">y </span><span class="s2">+ </span><span class="s1">dy</span><span class="s2">;</span>
+                    <span class="s0">if </span><span class="s2">(</span><span class="s1">newY </span><span class="s2">&gt;= </span><span class="s5">0 </span><span class="s2">&amp;&amp; </span><span class="s1">newY </span><span class="s2">&lt; </span><span class="s1">picture</span><span class="s2">.</span><span class="s1">height</span><span class="s2">()) {</span>
+                        <span class="s1">Pixel neighborPixel </span><span class="s2">= </span><span class="s0">new </span><span class="s1">Pixel</span><span class="s2">(</span><span class="s1">x </span><span class="s2">+ </span><span class="s5">1</span><span class="s2">, </span><span class="s1">newY</span><span class="s2">);</span>
+                        <span class="s0">double </span><span class="s1">weight </span><span class="s2">= </span><span class="s1">f</span><span class="s2">.</span><span class="s1">apply</span><span class="s2">(</span><span class="s1">picture</span><span class="s2">, </span><span class="s1">x </span><span class="s2">+ </span><span class="s5">1</span><span class="s2">, </span><span class="s1">newY</span><span class="s2">);</span>
+                        <span class="s1">neighbors</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s0">new </span><span class="s1">Edge</span><span class="s2">&lt;&gt;(</span><span class="s0">this</span><span class="s2">, </span><span class="s1">neighborPixel</span><span class="s2">, </span><span class="s1">weight</span><span class="s2">));</span>
+                    <span class="s2">}</span>
+                <span class="s2">}</span>
+
+                <span class="s0">return </span><span class="s1">neighbors</span><span class="s2">;</span>
+            <span class="s2">}</span>
+
+            <span class="s1">@Override</span>
+            <span class="s0">public </span><span class="s1">String toString</span><span class="s2">() {</span>
+                <span class="s0">return </span><span class="s8">&quot;(&quot; </span><span class="s2">+ </span><span class="s1">x </span><span class="s2">+ </span><span class="s8">&quot;, &quot; </span><span class="s2">+ </span><span class="s1">y </span><span class="s2">+ </span><span class="s8">&quot;)&quot;</span><span class="s2">;</span>
+            <span class="s2">}</span>
+
+            <span class="s1">@Override</span>
+            <span class="s0">public boolean </span><span class="s1">equals</span><span class="s2">(</span><span class="s1">Object o</span><span class="s2">) {</span>
+                <span class="s0">if </span><span class="s2">(</span><span class="s0">this </span><span class="s2">== </span><span class="s1">o</span><span class="s2">) {</span>
+                    <span class="s0">return true</span><span class="s2">;</span>
+                <span class="s2">} </span><span class="s0">else if </span><span class="s2">(!(</span><span class="s1">o </span><span class="s0">instanceof </span><span class="s1">Pixel</span><span class="s2">)) {</span>
+                    <span class="s0">return false</span><span class="s2">;</span>
+                <span class="s2">}</span>
+                <span class="s1">Pixel other </span><span class="s2">= (</span><span class="s1">Pixel</span><span class="s2">) </span><span class="s1">o</span><span class="s2">;</span>
+                <span class="s0">return this</span><span class="s2">.</span><span class="s1">x </span><span class="s2">== </span><span class="s1">other</span><span class="s2">.</span><span class="s1">x </span><span class="s2">&amp;&amp; </span><span class="s0">this</span><span class="s2">.</span><span class="s1">y </span><span class="s2">== </span><span class="s1">other</span><span class="s2">.</span><span class="s1">y</span><span class="s2">;</span>
+            <span class="s2">}</span>
+
+            <span class="s1">@Override</span>
+            <span class="s0">public int </span><span class="s1">hashCode</span><span class="s2">() {</span>
+                <span class="s0">return </span><span class="s1">Objects</span><span class="s2">.</span><span class="s1">hash</span><span class="s2">(</span><span class="s1">x</span><span class="s2">, </span><span class="s1">y</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

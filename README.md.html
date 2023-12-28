@@ -1,0 +1,52 @@
+<html>
+<head>
+<title>README.md</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #56a8f5;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+README.md</font>
+</center></td></tr></table>
+<pre><span class="s0"># </span><span class="s2">Husky Maps</span>
+
+<span class="s2">An educational web app for mapping the world, searching for places, and navigating around Seattle. The app is designed to highlight 3 components</span><span class="s1">: [**</span><span class="s2">Autocomplete</span><span class="s1">**](</span><span class="s2">src/autocomplete/</span><span class="s1">)</span><span class="s2">, </span><span class="s1">[**</span><span class="s2">Priority Queues</span><span class="s1">**](</span><span class="s2">src/minpq/</span><span class="s1">)</span><span class="s2">, and </span><span class="s1">[**</span><span class="s2">Seam Finding</span><span class="s1">**](</span><span class="s2">src/seamfinding/</span><span class="s1">)</span><span class="s2">. See the </span><span class="s1">[**</span><span class="s2">Releases</span><span class="s1">**](</span><span class="s3">https://github.com/kevinlin1/huskymaps/releases</span><span class="s1">) </span><span class="s2">for instructions about each project component.</span>
+
+<span class="s0">## </span><span class="s2">Setup</span>
+
+<span class="s2">This project is pre-configured for IntelliJ IDEA.</span>
+
+<span class="s0">1. </span><span class="s2">Install </span><span class="s1">[</span><span class="s2">IntelliJ IDEA</span><span class="s1">](</span><span class="s3">https://www.jetbrains.com/idea/download/</span><span class="s1">)</span><span class="s2">.</span>
+<span class="s0">1. </span><span class="s2">Download or clone this project and open it in IntelliJ.</span>
+<span class="s0">1. </span><span class="s2">Run the `MapServer` class to start the web app.</span>
+
+<span class="s2">To see the map images, </span><span class="s1">[</span><span class="s2">sign up for a free MapBox account</span><span class="s1">](</span><span class="s3">https://account.mapbox.com/auth/signup/?route-to=%22https://account.mapbox.com/access-tokens/%22</span><span class="s1">) </span><span class="s2">to get an access token. Once you have your access token, in the IntelliJ toolbar, select the </span><span class="s1">&quot;</span><span class="s2">MapServer</span><span class="s1">&quot; </span><span class="s2">dropdown, </span><span class="s1">**</span><span class="s2">Edit Configurations...</span><span class="s1">**</span><span class="s2">, under </span><span class="s1">**</span><span class="s2">Environment variables</span><span class="s1">** </span><span class="s2">write `TOKEN=` and then paste your token. Re-run the `MapServer` class to launch the web app and enjoy the </span><span class="s1">[&quot;</span><span class="s2">Ice Cream</span><span class="s1">&quot; </span><span class="s2">map style by Maya Gao</span><span class="s1">](</span><span class="s3">https://www.mapbox.com/gallery/</span><span class="s1">)</span><span class="s2">.</span>
+
+<span class="s0">## </span><span class="s2">Deployment</span>
+
+<span class="s2">One way to share Java apps is by distributing them as a </span><span class="s1">**</span><span class="s2">JAR</span><span class="s1">** </span><span class="s2">that bundles all your code together into a single file.</span>
+
+<span class="s0">1. </span><span class="s2">Open IntelliJ. From the </span><span class="s1">**</span><span class="s2">File</span><span class="s1">** </span><span class="s2">menu, select </span><span class="s1">**</span><span class="s2">Project Structure...</span><span class="s1">** </span><span class="s2">and </span><span class="s1">**</span><span class="s2">Artifacts</span><span class="s1">** </span><span class="s2">from the sidebar.</span>
+<span class="s0">1. </span><span class="s2">Press the </span><span class="s1">**</span><span class="s2">+</span><span class="s1">** </span><span class="s2">button to add a new </span><span class="s1">**</span><span class="s2">JAR</span><span class="s1">** </span><span class="s2">and select </span><span class="s1">**</span><span class="s2">From module with dependencies</span><span class="s1">**</span><span class="s2">.</span>
+<span class="s0">1. </span><span class="s2">In the pop-up window, select </span><span class="s1">**</span><span class="s2">MapServer</span><span class="s1">** </span><span class="s2">as the main class and press </span><span class="s1">**</span><span class="s2">OK</span><span class="s1">**</span><span class="s2">.</span>
+<span class="s0">1. </span><span class="s2">Edit the name from </span><span class="s1">&quot;</span><span class="s2">huskymaps</span><span class="s1">:</span><span class="s2">jar</span><span class="s1">&quot; </span><span class="s2">to </span><span class="s1">&quot;</span><span class="s2">huskymaps</span><span class="s1">&quot; </span><span class="s2">and press </span><span class="s1">**</span><span class="s2">OK</span><span class="s1">** </span><span class="s2">to close the project structure dialog.</span>
+<span class="s0">1. </span><span class="s2">From the </span><span class="s1">**</span><span class="s2">Build</span><span class="s1">** </span><span class="s2">menu, select </span><span class="s1">**</span><span class="s2">Build Artifacts</span><span class="s1">** </span><span class="s2">and build </span><span class="s1">**</span><span class="s2">huskymaps</span><span class="s1">**</span><span class="s2">.</span>
+<span class="s0">1. </span><span class="s2">Test your JAR by running it from the terminal. In IntelliJ, </span><span class="s1">[</span><span class="s2">open the terminal</span><span class="s1">](</span><span class="s3">https://www.jetbrains.com/help/idea/terminal-emulator.html#open-terminal</span><span class="s1">)</span><span class="s2">, and run `TOKEN=... java -jar out/artifacts/huskymaps/huskymaps.jar`.</span>
+
+<span class="s2">To deploy the app to the web, we'll share this JAR file with a web hosting provider such as </span><span class="s1">[</span><span class="s2">fly.io</span><span class="s1">](</span><span class="s3">https://fly.io</span><span class="s1">)</span><span class="s2">. fly.io provides a free web hosting service where anyone can sign-up to deploy their apps to the internet at no cost </span><span class="s1">(</span><span class="s2">no payment method needed</span><span class="s1">)</span><span class="s2">.</span>
+
+<span class="s0">1. </span><span class="s1">[</span><span class="s2">Install flyctl</span><span class="s1">](</span><span class="s3">https://fly.io/docs/hands-on/install-flyctl/</span><span class="s1">) </span><span class="s2">and </span><span class="s1">[</span><span class="s2">sign up</span><span class="s1">](</span><span class="s3">https://fly.io/docs/hands-on/sign-up/</span><span class="s1">)</span><span class="s2">.</span>
+<span class="s0">1. </span><span class="s2">Start </span><span class="s1">(</span><span class="s2">but don't complete</span><span class="s1">!) </span><span class="s2">the process for </span><span class="s1">[</span><span class="s2">deploying your application via Dockerfile</span><span class="s1">](</span><span class="s3">https://fly.io/docs/languages-and-frameworks/dockerfile/</span><span class="s1">)</span><span class="s2">. For the app name, use the name `huskymaps-` with your UW NetID after the dash. When it asks you to deploy, don't do so just yet</span><span class="s1">!</span>
+<span class="s0">1. </span><span class="s2">Open the `fly.toml` file in a text editor and set the `force_https` option to false.</span>
+<span class="s0">1. </span><span class="s2">Share your MapBox access token with fly as an app secret with the terminal command `fly secrets set TOKEN=...`.</span>
+<span class="s0">1. </span><span class="s2">Finally, deploy the app with the terminal command `fly deploy`.</span>
+</pre>
+</body>
+</html>
