@@ -1,0 +1,74 @@
+<html>
+<head>
+<title>BinarySearchAutocomplete.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #67a37c; font-style: italic;}
+.s5 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+BinarySearchAutocomplete.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">autocomplete</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">ArrayList</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Collection</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Collections</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">List</span><span class="s2">;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Binary search implementation of the {</span><span class="s4">@link </span><span class="s3">Autocomplete} interface.</span>
+ <span class="s3">*</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">Autocomplete</span>
+ <span class="s3">*/</span>
+<span class="s0">public class </span><span class="s1">BinarySearchAutocomplete </span><span class="s0">implements </span><span class="s1">Autocomplete </span><span class="s2">{</span>
+    <span class="s3">/**</span>
+     <span class="s3">* {</span><span class="s4">@link </span><span class="s3">List} of added autocompletion terms.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private final </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">CharSequence</span><span class="s2">&gt; </span><span class="s1">elements</span><span class="s2">;</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Constructs an empty instance.</span>
+     <span class="s3">*/</span>
+    <span class="s0">public </span><span class="s1">BinarySearchAutocomplete</span><span class="s2">() {</span>
+        <span class="s1">elements </span><span class="s2">= </span><span class="s0">new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;();</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public void </span><span class="s1">addAll</span><span class="s2">(</span><span class="s1">Collection</span><span class="s2">&lt;? </span><span class="s0">extends </span><span class="s1">CharSequence</span><span class="s2">&gt; </span><span class="s1">terms</span><span class="s2">) {</span>
+        <span class="s1">elements</span><span class="s2">.</span><span class="s1">addAll</span><span class="s2">(</span><span class="s1">terms</span><span class="s2">);</span>
+        <span class="s1">Collections</span><span class="s2">.</span><span class="s1">sort</span><span class="s2">(</span><span class="s1">elements</span><span class="s2">, </span><span class="s1">CharSequence::compare</span><span class="s2">);</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">CharSequence</span><span class="s2">&gt; </span><span class="s1">allMatches</span><span class="s2">(</span><span class="s1">CharSequence prefix</span><span class="s2">) {</span>
+        <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">CharSequence</span><span class="s2">&gt; </span><span class="s1">match </span><span class="s2">= </span><span class="s0">new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;();</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">prefix </span><span class="s2">== </span><span class="s0">null </span><span class="s2">|| </span><span class="s1">prefix</span><span class="s2">.</span><span class="s1">length</span><span class="s2">() == </span><span class="s5">0</span><span class="s2">) {</span>
+            <span class="s0">return </span><span class="s1">match</span><span class="s2">;</span>
+        <span class="s2">}</span>
+
+        <span class="s0">int </span><span class="s1">i </span><span class="s2">= </span><span class="s1">Collections</span><span class="s2">.</span><span class="s1">binarySearch</span><span class="s2">(</span><span class="s1">elements</span><span class="s2">, </span><span class="s1">prefix</span><span class="s2">, </span><span class="s1">CharSequence::compare</span><span class="s2">);</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">i</span><span class="s2">&lt; </span><span class="s5">0</span><span class="s2">) {</span>
+            <span class="s1">i </span><span class="s2">= -</span><span class="s5">1 </span><span class="s2">* (</span><span class="s1">i </span><span class="s2">+</span><span class="s5">1</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s0">int </span><span class="s1">j </span><span class="s2">= </span><span class="s1">i</span><span class="s2">; </span><span class="s1">j </span><span class="s2">&lt; </span><span class="s1">elements</span><span class="s2">.</span><span class="s1">size</span><span class="s2">(); </span><span class="s1">j</span><span class="s2">++ ) {</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">Autocomplete</span><span class="s2">.</span><span class="s1">isPrefixOf</span><span class="s2">(</span><span class="s1">prefix</span><span class="s2">, </span><span class="s1">elements</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">j</span><span class="s2">))) {</span>
+                <span class="s1">match</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">elements</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">j</span><span class="s2">));</span>
+            <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+                <span class="s0">return </span><span class="s1">match</span><span class="s2">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+        <span class="s0">return </span><span class="s1">match</span><span class="s2">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

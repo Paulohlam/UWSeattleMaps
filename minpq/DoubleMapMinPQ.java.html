@@ -1,0 +1,126 @@
+<html>
+<head>
+<title>DoubleMapMinPQ.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #67a37c; font-style: italic;}
+.s5 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+DoubleMapMinPQ.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">minpq</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.*;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* {</span><span class="s4">@link </span><span class="s3">TreeMap} and {</span><span class="s4">@link </span><span class="s3">HashMap} implementation of the {</span><span class="s4">@link </span><span class="s3">MinPQ} interface.</span>
+ <span class="s3">*</span>
+ <span class="s3">* </span><span class="s4">@param </span><span class="s1">&lt;</span><span class="s3">E</span><span class="s1">&gt; </span><span class="s3">the type of elements in this priority queue.</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">MinPQ</span>
+ <span class="s3">*/</span>
+<span class="s0">public class </span><span class="s1">DoubleMapMinPQ</span><span class="s2">&lt;</span><span class="s1">E</span><span class="s2">&gt; </span><span class="s0">implements </span><span class="s1">MinPQ</span><span class="s2">&lt;</span><span class="s1">E</span><span class="s2">&gt; {</span>
+    <span class="s3">/**</span>
+     <span class="s3">* {</span><span class="s4">@link </span><span class="s3">NavigableMap} of priority values to all elements that share the same priority values.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private final </span><span class="s1">NavigableMap</span><span class="s2">&lt;</span><span class="s1">Double</span><span class="s2">, </span><span class="s1">Set</span><span class="s2">&lt;</span><span class="s1">E</span><span class="s2">&gt;&gt; </span><span class="s1">priorityToElement</span><span class="s2">;</span>
+    <span class="s3">/**</span>
+     <span class="s3">* {</span><span class="s4">@link </span><span class="s3">Map} of elements to their associated priority values.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private final </span><span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">E</span><span class="s2">, </span><span class="s1">Double</span><span class="s2">&gt; </span><span class="s1">elementToPriority</span><span class="s2">;</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Constructs an empty instance.</span>
+     <span class="s3">*/</span>
+    <span class="s0">public </span><span class="s1">DoubleMapMinPQ</span><span class="s2">() {</span>
+        <span class="s1">priorityToElement </span><span class="s2">= </span><span class="s0">new </span><span class="s1">TreeMap</span><span class="s2">&lt;&gt;();</span>
+        <span class="s1">elementToPriority </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HashMap</span><span class="s2">&lt;&gt;();</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public void </span><span class="s1">add</span><span class="s2">(</span><span class="s1">E element</span><span class="s2">, </span><span class="s0">double </span><span class="s1">priority</span><span class="s2">) {</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">contains</span><span class="s2">(</span><span class="s1">element</span><span class="s2">)) {</span>
+            <span class="s0">throw new </span><span class="s1">IllegalArgumentException</span><span class="s2">(</span><span class="s5">&quot;Already contains &quot; </span><span class="s2">+ </span><span class="s1">element</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s0">if </span><span class="s2">(!</span><span class="s1">priorityToElement</span><span class="s2">.</span><span class="s1">containsKey</span><span class="s2">(</span><span class="s1">priority</span><span class="s2">)) {</span>
+            <span class="s1">priorityToElement</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">priority</span><span class="s2">, </span><span class="s0">new </span><span class="s1">HashSet</span><span class="s2">&lt;&gt;());</span>
+        <span class="s2">}</span>
+        <span class="s1">Set</span><span class="s2">&lt;</span><span class="s1">E</span><span class="s2">&gt; </span><span class="s1">elementsWithPriority </span><span class="s2">= </span><span class="s1">priorityToElement</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">priority</span><span class="s2">);</span>
+        <span class="s1">elementsWithPriority</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">element</span><span class="s2">);</span>
+        <span class="s1">elementToPriority</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">element</span><span class="s2">, </span><span class="s1">priority</span><span class="s2">);</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public boolean </span><span class="s1">contains</span><span class="s2">(</span><span class="s1">E element</span><span class="s2">) {</span>
+        <span class="s0">return </span><span class="s1">elementToPriority</span><span class="s2">.</span><span class="s1">containsKey</span><span class="s2">(</span><span class="s1">element</span><span class="s2">);</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public </span><span class="s1">E peekMin</span><span class="s2">() {</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">isEmpty</span><span class="s2">()) {</span>
+            <span class="s0">throw new </span><span class="s1">NoSuchElementException</span><span class="s2">(</span><span class="s5">&quot;PQ is empty&quot;</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s0">double </span><span class="s1">minPriority </span><span class="s2">= </span><span class="s1">priorityToElement</span><span class="s2">.</span><span class="s1">firstKey</span><span class="s2">();</span>
+        <span class="s1">Set</span><span class="s2">&lt;</span><span class="s1">E</span><span class="s2">&gt; </span><span class="s1">elementsWithMinPriority </span><span class="s2">= </span><span class="s1">priorityToElement</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">minPriority</span><span class="s2">);</span>
+        <span class="s0">return </span><span class="s1">firstOf</span><span class="s2">(</span><span class="s1">elementsWithMinPriority</span><span class="s2">);</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public </span><span class="s1">E removeMin</span><span class="s2">() {</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">isEmpty</span><span class="s2">()) {</span>
+            <span class="s0">throw new </span><span class="s1">NoSuchElementException</span><span class="s2">(</span><span class="s5">&quot;PQ is empty&quot;</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s0">double </span><span class="s1">minPriority </span><span class="s2">= </span><span class="s1">priorityToElement</span><span class="s2">.</span><span class="s1">firstKey</span><span class="s2">();</span>
+        <span class="s1">Set</span><span class="s2">&lt;</span><span class="s1">E</span><span class="s2">&gt; </span><span class="s1">elementsWithMinPriority </span><span class="s2">= </span><span class="s1">priorityToElement</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">minPriority</span><span class="s2">);</span>
+        <span class="s1">E element </span><span class="s2">= </span><span class="s1">firstOf</span><span class="s2">(</span><span class="s1">elementsWithMinPriority</span><span class="s2">);</span>
+        <span class="s1">elementsWithMinPriority</span><span class="s2">.</span><span class="s1">remove</span><span class="s2">(</span><span class="s1">element</span><span class="s2">);</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">elementsWithMinPriority</span><span class="s2">.</span><span class="s1">isEmpty</span><span class="s2">()) {</span>
+            <span class="s1">priorityToElement</span><span class="s2">.</span><span class="s1">remove</span><span class="s2">(</span><span class="s1">minPriority</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s1">elementToPriority</span><span class="s2">.</span><span class="s1">remove</span><span class="s2">(</span><span class="s1">element</span><span class="s2">);</span>
+        <span class="s0">return </span><span class="s1">element</span><span class="s2">;</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public void </span><span class="s1">changePriority</span><span class="s2">(</span><span class="s1">E element</span><span class="s2">, </span><span class="s0">double </span><span class="s1">priority</span><span class="s2">) {</span>
+        <span class="s0">if </span><span class="s2">(!</span><span class="s1">contains</span><span class="s2">(</span><span class="s1">element</span><span class="s2">)) {</span>
+            <span class="s0">throw new </span><span class="s1">NoSuchElementException</span><span class="s2">(</span><span class="s5">&quot;PQ does not contain &quot; </span><span class="s2">+ </span><span class="s1">element</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s0">double </span><span class="s1">oldPriority </span><span class="s2">= </span><span class="s1">elementToPriority</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">element</span><span class="s2">);</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">priority </span><span class="s2">!= </span><span class="s1">oldPriority</span><span class="s2">) {</span>
+            <span class="s1">Set</span><span class="s2">&lt;</span><span class="s1">E</span><span class="s2">&gt; </span><span class="s1">elementsWithOldPriority </span><span class="s2">= </span><span class="s1">priorityToElement</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">oldPriority</span><span class="s2">);</span>
+            <span class="s1">elementsWithOldPriority</span><span class="s2">.</span><span class="s1">remove</span><span class="s2">(</span><span class="s1">element</span><span class="s2">);</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">elementsWithOldPriority</span><span class="s2">.</span><span class="s1">isEmpty</span><span class="s2">()) {</span>
+                <span class="s1">priorityToElement</span><span class="s2">.</span><span class="s1">remove</span><span class="s2">(</span><span class="s1">oldPriority</span><span class="s2">);</span>
+            <span class="s2">}</span>
+            <span class="s1">elementToPriority</span><span class="s2">.</span><span class="s1">remove</span><span class="s2">(</span><span class="s1">element</span><span class="s2">);</span>
+            <span class="s1">add</span><span class="s2">(</span><span class="s1">element</span><span class="s2">, </span><span class="s1">priority</span><span class="s2">);</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public int </span><span class="s1">size</span><span class="s2">() {</span>
+        <span class="s0">return </span><span class="s1">elementToPriority</span><span class="s2">.</span><span class="s1">size</span><span class="s2">();</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Returns any one element from the given iterable.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">it the iterable of elements.</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">any one element from the given iterable.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private </span><span class="s1">E firstOf</span><span class="s2">(</span><span class="s1">Iterable</span><span class="s2">&lt;</span><span class="s1">E</span><span class="s2">&gt; </span><span class="s1">it</span><span class="s2">) {</span>
+        <span class="s0">return </span><span class="s1">it</span><span class="s2">.</span><span class="s1">iterator</span><span class="s2">().</span><span class="s1">next</span><span class="s2">();</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

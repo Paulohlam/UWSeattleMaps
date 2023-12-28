@@ -1,0 +1,45 @@
+<html>
+<head>
+<title>TreeSetAutocompleteTests.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #67a37c; font-style: italic;}
+.s5 { color: #7a7e85;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+TreeSetAutocompleteTests.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">autocomplete</span><span class="s2">;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Tests for the {</span><span class="s4">@link </span><span class="s3">TreeSetAutocomplete} class.</span>
+ <span class="s3">*</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">TreeSetAutocomplete</span>
+ <span class="s3">*/</span>
+<span class="s0">public class </span><span class="s1">TreeSetAutocompleteTests </span><span class="s0">extends </span><span class="s1">AutocompleteTests </span><span class="s2">{</span>
+    <span class="s1">@Override</span>
+    <span class="s0">public </span><span class="s1">Autocomplete createAutocomplete</span><span class="s2">() {</span>
+        <span class="s0">return new </span><span class="s1">TreeSetAutocomplete</span><span class="s2">();</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">void </span><span class="s1">comparePrefixSea</span><span class="s2">() {</span>
+        <span class="s5">// Disable this inherited test for the reference implementation</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">void </span><span class="s1">compareRandomPrefixes</span><span class="s2">() {</span>
+        <span class="s5">// Disable this inherited test for the reference implementation</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

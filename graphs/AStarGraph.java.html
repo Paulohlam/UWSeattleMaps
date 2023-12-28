@@ -1,0 +1,42 @@
+<html>
+<head>
+<title>AStarGraph.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #67a37c; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+AStarGraph.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">graphs</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">graphs</span><span class="s2">.</span><span class="s1">shortestpaths</span><span class="s2">.</span><span class="s1">AStarSolver</span><span class="s2">;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Directed, edge-weighted graph with a heuristic function to estimate distances between vertices.</span>
+ <span class="s3">*</span>
+ <span class="s3">* </span><span class="s4">@param </span><span class="s1">&lt;</span><span class="s3">V</span><span class="s1">&gt; </span><span class="s3">the type of vertices.</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">Graph</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">AStarSolver</span>
+ <span class="s3">*/</span>
+<span class="s0">public interface </span><span class="s1">AStarGraph</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">&gt; </span><span class="s0">extends </span><span class="s1">Graph</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">&gt; {</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Returns an estimated distance from start to end.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">start the beginning vertex.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">end   the destination vertex.</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">an estimated distance from start to end.</span>
+     <span class="s3">*/</span>
+    <span class="s0">double </span><span class="s1">estimatedDistance</span><span class="s2">(</span><span class="s1">V start</span><span class="s2">, </span><span class="s1">V end</span><span class="s2">);</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

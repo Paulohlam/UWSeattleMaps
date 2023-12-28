@@ -1,0 +1,116 @@
+<html>
+<head>
+<title>HeapMinPQ.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #67a37c; font-style: italic;}
+.s5 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+HeapMinPQ.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">minpq</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Comparator</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">NoSuchElementException</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">PriorityQueue</span><span class="s2">;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* {</span><span class="s4">@link </span><span class="s3">PriorityQueue} implementation of the {</span><span class="s4">@link </span><span class="s3">MinPQ} interface.</span>
+ <span class="s3">*</span>
+ <span class="s3">* </span><span class="s4">@param </span><span class="s1">&lt;</span><span class="s3">E</span><span class="s1">&gt; </span><span class="s3">the type of elements in this priority queue.</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">MinPQ</span>
+ <span class="s3">*/</span>
+<span class="s0">public class </span><span class="s1">HeapMinPQ</span><span class="s2">&lt;</span><span class="s1">E</span><span class="s2">&gt; </span><span class="s0">implements </span><span class="s1">MinPQ</span><span class="s2">&lt;</span><span class="s1">E</span><span class="s2">&gt; {</span>
+    <span class="s3">/**</span>
+     <span class="s3">* {</span><span class="s4">@link </span><span class="s3">PriorityQueue} storing {</span><span class="s4">@link </span><span class="s3">PriorityNode} objects representing each element-priority pair.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private final </span><span class="s1">PriorityQueue</span><span class="s2">&lt;</span><span class="s1">PriorityNode</span><span class="s2">&lt;</span><span class="s1">E</span><span class="s2">&gt;&gt; </span><span class="s1">pq</span><span class="s2">;</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Constructs an empty instance.</span>
+     <span class="s3">*/</span>
+    <span class="s0">public </span><span class="s1">HeapMinPQ</span><span class="s2">() {</span>
+        <span class="s1">pq </span><span class="s2">= </span><span class="s0">new </span><span class="s1">PriorityQueue</span><span class="s2">&lt;&gt;(</span><span class="s1">Comparator</span><span class="s2">.</span><span class="s1">comparingDouble</span><span class="s2">(</span><span class="s1">PriorityNode::getPriority</span><span class="s2">));</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public void </span><span class="s1">add</span><span class="s2">(</span><span class="s1">E element</span><span class="s2">, </span><span class="s0">double </span><span class="s1">priority</span><span class="s2">) {</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">contains</span><span class="s2">(</span><span class="s1">element</span><span class="s2">)) {</span>
+            <span class="s0">throw new </span><span class="s1">IllegalArgumentException</span><span class="s2">(</span><span class="s5">&quot;Already contains &quot; </span><span class="s2">+ </span><span class="s1">element</span><span class="s2">);</span>
+        <span class="s2">}</span>
+
+        <span class="s1">pq</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s0">new </span><span class="s1">PriorityNode</span><span class="s2">&lt;&gt;(</span><span class="s1">element</span><span class="s2">, </span><span class="s1">priority</span><span class="s2">));</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public boolean </span><span class="s1">contains</span><span class="s2">(</span><span class="s1">E element</span><span class="s2">) {</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s1">PriorityNode</span><span class="s2">&lt;</span><span class="s1">E</span><span class="s2">&gt; </span><span class="s1">currentNode </span><span class="s2">: </span><span class="s1">pq</span><span class="s2">) {</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">currentNode</span><span class="s2">.</span><span class="s1">getElement</span><span class="s2">().</span><span class="s1">equals</span><span class="s2">(</span><span class="s1">element</span><span class="s2">)) {</span>
+                <span class="s0">return true</span><span class="s2">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+
+        <span class="s0">return false</span><span class="s2">;</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public </span><span class="s1">E peekMin</span><span class="s2">() {</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">isEmpty</span><span class="s2">()) {</span>
+            <span class="s0">throw new </span><span class="s1">NoSuchElementException</span><span class="s2">(</span><span class="s5">&quot;PQ is empty&quot;</span><span class="s2">);</span>
+        <span class="s2">}</span>
+
+        <span class="s1">PriorityNode</span><span class="s2">&lt;</span><span class="s1">E</span><span class="s2">&gt; </span><span class="s1">minNode </span><span class="s2">= </span><span class="s1">pq</span><span class="s2">.</span><span class="s1">peek</span><span class="s2">();</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">minNode </span><span class="s2">!= </span><span class="s0">null</span><span class="s2">) {</span>
+            <span class="s0">return </span><span class="s1">minNode</span><span class="s2">.</span><span class="s1">getElement</span><span class="s2">();</span>
+        <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+            <span class="s0">throw new </span><span class="s1">NoSuchElementException</span><span class="s2">(</span><span class="s5">&quot;PQ is empty&quot;</span><span class="s2">);</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public </span><span class="s1">E removeMin</span><span class="s2">() {</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">isEmpty</span><span class="s2">()) {</span>
+            <span class="s0">throw new </span><span class="s1">NoSuchElementException</span><span class="s2">(</span><span class="s5">&quot;PQ is empty&quot;</span><span class="s2">);</span>
+        <span class="s2">}</span>
+
+        <span class="s1">PriorityNode</span><span class="s2">&lt;</span><span class="s1">E</span><span class="s2">&gt; </span><span class="s1">minNode </span><span class="s2">= </span><span class="s1">pq</span><span class="s2">.</span><span class="s1">poll</span><span class="s2">();</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">minNode </span><span class="s2">!= </span><span class="s0">null</span><span class="s2">) {</span>
+            <span class="s0">return </span><span class="s1">minNode</span><span class="s2">.</span><span class="s1">getElement</span><span class="s2">();</span>
+        <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+            <span class="s0">throw new </span><span class="s1">NoSuchElementException</span><span class="s2">(</span><span class="s5">&quot;PQ is empty&quot;</span><span class="s2">);</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public void </span><span class="s1">changePriority</span><span class="s2">(</span><span class="s1">E element</span><span class="s2">, </span><span class="s0">double </span><span class="s1">priority</span><span class="s2">) {</span>
+        <span class="s0">if </span><span class="s2">(!</span><span class="s1">contains</span><span class="s2">(</span><span class="s1">element</span><span class="s2">)) {</span>
+            <span class="s0">throw new </span><span class="s1">NoSuchElementException</span><span class="s2">(</span><span class="s5">&quot;PQ does not contain &quot; </span><span class="s2">+ </span><span class="s1">element</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s1">PriorityNode</span><span class="s2">&lt;</span><span class="s1">E</span><span class="s2">&gt; </span><span class="s1">currentNode </span><span class="s2">: </span><span class="s1">pq</span><span class="s2">) {</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">currentNode</span><span class="s2">.</span><span class="s1">getElement</span><span class="s2">().</span><span class="s1">equals</span><span class="s2">(</span><span class="s1">element</span><span class="s2">)) {</span>
+                <span class="s1">pq</span><span class="s2">.</span><span class="s1">remove</span><span class="s2">(</span><span class="s1">currentNode</span><span class="s2">);</span>
+                <span class="s1">currentNode</span><span class="s2">.</span><span class="s1">setPriority</span><span class="s2">(</span><span class="s1">priority</span><span class="s2">);</span>
+                <span class="s1">pq</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">currentNode</span><span class="s2">);</span>
+
+                <span class="s0">break</span><span class="s2">;</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public int </span><span class="s1">size</span><span class="s2">() {</span>
+        <span class="s0">return </span><span class="s1">pq</span><span class="s2">.</span><span class="s1">size</span><span class="s2">();</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

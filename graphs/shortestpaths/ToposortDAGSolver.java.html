@@ -1,0 +1,130 @@
+<html>
+<head>
+<title>ToposortDAGSolver.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #67a37c; font-style: italic;}
+.s5 { color: #68a67e; font-style: italic;}
+.s6 { color: #2aacb8;}
+.s7 { color: #7a7e85;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+ToposortDAGSolver.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">graphs</span><span class="s2">.</span><span class="s1">shortestpaths</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">graphs</span><span class="s2">.</span><span class="s1">Edge</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">graphs</span><span class="s2">.</span><span class="s1">Graph</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.*;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Topological sorting implementation of the {</span><span class="s4">@link </span><span class="s3">ShortestPathSolver} interface for </span><span class="s5">&lt;b&gt;</span><span class="s3">directed acyclic graphs</span><span class="s5">&lt;/b&gt;</span><span class="s3">.</span>
+ <span class="s3">*</span>
+ <span class="s3">* </span><span class="s4">@param </span><span class="s1">&lt;</span><span class="s3">V</span><span class="s1">&gt; </span><span class="s3">the type of vertices.</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">ShortestPathSolver</span>
+ <span class="s3">*/</span>
+<span class="s0">public class </span><span class="s1">ToposortDAGSolver</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">&gt; </span><span class="s0">implements </span><span class="s1">ShortestPathSolver</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">&gt; {</span>
+    <span class="s0">private final </span><span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">, </span><span class="s1">Edge</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">&gt;&gt; </span><span class="s1">edgeTo</span><span class="s2">;</span>
+    <span class="s0">private final </span><span class="s1">Map</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">, </span><span class="s1">Double</span><span class="s2">&gt; </span><span class="s1">distTo</span><span class="s2">;</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Constructs a new instance by executing the toposort-DAG-shortest-paths algorithm on the graph from the start.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">graph the input graph.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">start the start vertex.</span>
+     <span class="s3">*/</span>
+    <span class="s0">public </span><span class="s1">ToposortDAGSolver</span><span class="s2">(</span><span class="s1">Graph</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">&gt; </span><span class="s1">graph</span><span class="s2">, </span><span class="s1">V start</span><span class="s2">) {</span>
+        <span class="s1">edgeTo </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HashMap</span><span class="s2">&lt;&gt;();</span>
+        <span class="s1">distTo </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HashMap</span><span class="s2">&lt;&gt;();</span>
+
+        <span class="s1">distTo</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">start</span><span class="s2">, </span><span class="s6">0.0</span><span class="s2">);</span>
+
+        <span class="s7">// Perform DFS to get vertices in postorder</span>
+        <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">&gt; </span><span class="s1">postOrder </span><span class="s2">= </span><span class="s0">new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;();</span>
+        <span class="s1">Set</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">&gt; </span><span class="s1">visited </span><span class="s2">= </span><span class="s0">new </span><span class="s1">HashSet</span><span class="s2">&lt;&gt;();</span>
+        <span class="s1">dfsPostOrder</span><span class="s2">(</span><span class="s1">graph</span><span class="s2">, </span><span class="s1">start</span><span class="s2">, </span><span class="s1">visited</span><span class="s2">, </span><span class="s1">postOrder</span><span class="s2">);</span>
+        <span class="s1">Collections</span><span class="s2">.</span><span class="s1">reverse</span><span class="s2">(</span><span class="s1">postOrder</span><span class="s2">);</span>
+
+        <span class="s7">// Relax edges in topological order</span>
+        <span class="s0">for </span><span class="s2">(</span><span class="s1">V vertex </span><span class="s2">: </span><span class="s1">postOrder</span><span class="s2">) {</span>
+            <span class="s0">if </span><span class="s2">(!</span><span class="s1">distTo</span><span class="s2">.</span><span class="s1">containsKey</span><span class="s2">(</span><span class="s1">vertex</span><span class="s2">)) {</span>
+                <span class="s1">distTo</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">vertex</span><span class="s2">, </span><span class="s1">Double</span><span class="s2">.</span><span class="s1">POSITIVE_INFINITY</span><span class="s2">);</span>
+            <span class="s2">}</span>
+            <span class="s0">for </span><span class="s2">(</span><span class="s1">Edge</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">&gt; </span><span class="s1">edge </span><span class="s2">: </span><span class="s1">graph</span><span class="s2">.</span><span class="s1">neighbors</span><span class="s2">(</span><span class="s1">vertex</span><span class="s2">)) {</span>
+                <span class="s1">relax</span><span class="s2">(</span><span class="s1">edge</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Recursively adds nodes from the graph to the result in DFS postorder from the start vertex.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">graph   the input graph.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">start   the start vertex.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">visited the set of visited vertices.</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">result  the destination for adding nodes.</span>
+     <span class="s3">*/</span>
+    <span class="s0">private void </span><span class="s1">dfsPostOrder</span><span class="s2">(</span><span class="s1">Graph</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">&gt; </span><span class="s1">graph</span><span class="s2">, </span><span class="s1">V start</span><span class="s2">, </span><span class="s1">Set</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">&gt; </span><span class="s1">visited</span><span class="s2">, </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">&gt; </span><span class="s1">result</span><span class="s2">) {</span>
+
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">visited</span><span class="s2">.</span><span class="s1">contains</span><span class="s2">(</span><span class="s1">start</span><span class="s2">)) </span><span class="s0">return</span><span class="s2">;</span>
+        <span class="s1">visited</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">start</span><span class="s2">);</span>
+
+        <span class="s0">for </span><span class="s2">(</span><span class="s1">Edge</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">&gt; </span><span class="s1">edge </span><span class="s2">: </span><span class="s1">graph</span><span class="s2">.</span><span class="s1">neighbors</span><span class="s2">(</span><span class="s1">start</span><span class="s2">)) {</span>
+            <span class="s1">V next </span><span class="s2">= </span><span class="s1">edge</span><span class="s2">.</span><span class="s1">to</span><span class="s2">;</span>
+            <span class="s0">if </span><span class="s2">(!</span><span class="s1">visited</span><span class="s2">.</span><span class="s1">contains</span><span class="s2">(</span><span class="s1">next</span><span class="s2">)) {</span>
+                <span class="s1">dfsPostOrder</span><span class="s2">(</span><span class="s1">graph</span><span class="s2">, </span><span class="s1">next</span><span class="s2">, </span><span class="s1">visited</span><span class="s2">, </span><span class="s1">result</span><span class="s2">);</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+
+        <span class="s1">result</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">start</span><span class="s2">);</span>
+    <span class="s2">}</span>
+
+
+    <span class="s0">private void </span><span class="s1">relax</span><span class="s2">(</span><span class="s1">Edge</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">&gt; </span><span class="s1">edge</span><span class="s2">) {</span>
+        <span class="s1">V from </span><span class="s2">= </span><span class="s1">edge</span><span class="s2">.</span><span class="s1">from</span><span class="s2">;</span>
+        <span class="s1">V to </span><span class="s2">= </span><span class="s1">edge</span><span class="s2">.</span><span class="s1">to</span><span class="s2">;</span>
+        <span class="s0">double </span><span class="s1">weight </span><span class="s2">= </span><span class="s1">edge</span><span class="s2">.</span><span class="s1">weight</span><span class="s2">;</span>
+
+        <span class="s7">// Check if 'from' vertex is in distTo</span>
+        <span class="s0">if </span><span class="s2">(!</span><span class="s1">distTo</span><span class="s2">.</span><span class="s1">containsKey</span><span class="s2">(</span><span class="s1">from</span><span class="s2">)) {</span>
+            <span class="s0">return</span><span class="s2">; </span><span class="s7">// Skip relaxation if 'from' vertex is not reachable</span>
+        <span class="s2">}</span>
+
+        <span class="s7">// Initialize 'to' vertex in distTo if it's not present</span>
+        <span class="s0">if </span><span class="s2">(!</span><span class="s1">distTo</span><span class="s2">.</span><span class="s1">containsKey</span><span class="s2">(</span><span class="s1">to</span><span class="s2">)) {</span>
+            <span class="s1">distTo</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">to</span><span class="s2">, </span><span class="s1">Double</span><span class="s2">.</span><span class="s1">POSITIVE_INFINITY</span><span class="s2">);</span>
+        <span class="s2">}</span>
+
+        <span class="s7">// Perform relaxation</span>
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">distTo</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">to</span><span class="s2">) &gt; </span><span class="s1">distTo</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">from</span><span class="s2">) + </span><span class="s1">weight</span><span class="s2">) {</span>
+            <span class="s1">distTo</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">to</span><span class="s2">, </span><span class="s1">distTo</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">from</span><span class="s2">) + </span><span class="s1">weight</span><span class="s2">);</span>
+            <span class="s1">edgeTo</span><span class="s2">.</span><span class="s1">put</span><span class="s2">(</span><span class="s1">to</span><span class="s2">, </span><span class="s1">edge</span><span class="s2">);</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+
+    <span class="s1">@Override</span>
+    <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">&gt; </span><span class="s1">solution</span><span class="s2">(</span><span class="s1">V goal</span><span class="s2">) {</span>
+        <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">&gt; </span><span class="s1">path </span><span class="s2">= </span><span class="s0">new </span><span class="s1">ArrayList</span><span class="s2">&lt;&gt;();</span>
+        <span class="s1">V curr </span><span class="s2">= </span><span class="s1">goal</span><span class="s2">;</span>
+        <span class="s1">path</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">curr</span><span class="s2">);</span>
+        <span class="s0">while </span><span class="s2">(</span><span class="s1">edgeTo</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">curr</span><span class="s2">) != </span><span class="s0">null</span><span class="s2">) {</span>
+            <span class="s1">curr </span><span class="s2">= </span><span class="s1">edgeTo</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">curr</span><span class="s2">).</span><span class="s1">from</span><span class="s2">;</span>
+            <span class="s1">path</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">curr</span><span class="s2">);</span>
+        <span class="s2">}</span>
+        <span class="s1">Collections</span><span class="s2">.</span><span class="s1">reverse</span><span class="s2">(</span><span class="s1">path</span><span class="s2">);</span>
+        <span class="s0">return </span><span class="s1">path</span><span class="s2">;</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

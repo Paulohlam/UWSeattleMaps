@@ -1,0 +1,64 @@
+<html>
+<head>
+<title>ShortestPathSolver.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #5f826b; font-style: italic;}
+.s4 { color: #67a37c; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+ShortestPathSolver.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">graphs</span><span class="s2">.</span><span class="s1">shortestpaths</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">graphs</span><span class="s2">.</span><span class="s1">Graph</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">List</span><span class="s2">;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* Single-source shortest paths from a start vertex to all reachable vertices.</span>
+ <span class="s3">*</span>
+ <span class="s3">* </span><span class="s4">@param </span><span class="s1">&lt;</span><span class="s3">V</span><span class="s1">&gt; </span><span class="s3">the type of vertices.</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">Constructor</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">Graph</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">DijkstraSolver</span>
+ <span class="s3">* </span><span class="s4">@see </span><span class="s3">ToposortDAGSolver</span>
+ <span class="s3">*/</span>
+<span class="s0">public interface </span><span class="s1">ShortestPathSolver</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">&gt; {</span>
+    <span class="s3">/**</span>
+     <span class="s3">* Returns the single-pair shortest path from a start vertex to the goal.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s3">goal the goal vertex.</span>
+     <span class="s3">* </span><span class="s4">@return </span><span class="s3">a list of vertices representing the shortest path.</span>
+     <span class="s3">*/</span>
+    <span class="s1">List</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">&gt; </span><span class="s1">solution</span><span class="s2">(</span><span class="s1">V goal</span><span class="s2">);</span>
+
+    <span class="s3">/**</span>
+     <span class="s3">* Constructor for {</span><span class="s4">@link </span><span class="s3">ShortestPathSolver}.</span>
+     <span class="s3">*</span>
+     <span class="s3">* </span><span class="s4">@param </span><span class="s1">&lt;</span><span class="s3">V</span><span class="s1">&gt; </span><span class="s3">the type of vertices.</span>
+     <span class="s3">* </span><span class="s4">@see </span><span class="s3">ShortestPathSolver</span>
+     <span class="s3">*/</span>
+    <span class="s1">@FunctionalInterface</span>
+    <span class="s0">interface </span><span class="s1">Constructor</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">&gt; {</span>
+        <span class="s3">/**</span>
+         <span class="s3">* Functional interface for running the constructor. Given an implementation of {</span><span class="s4">@link </span><span class="s3">ShortestPathSolver},</span>
+         <span class="s3">* refer to its constructor as (for example) {</span><span class="s4">@code </span><span class="s3">ShortestPathSolver::new}.</span>
+         <span class="s3">*</span>
+         <span class="s3">* </span><span class="s4">@param </span><span class="s3">graph the input graph.</span>
+         <span class="s3">* </span><span class="s4">@param </span><span class="s3">start the start vertex.</span>
+         <span class="s3">* </span><span class="s4">@return </span><span class="s3">an instance of {</span><span class="s4">@link </span><span class="s3">ShortestPathSolver}.</span>
+         <span class="s3">*/</span>
+        <span class="s1">ShortestPathSolver</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">&gt; </span><span class="s1">run</span><span class="s2">(</span><span class="s1">Graph</span><span class="s2">&lt;</span><span class="s1">V</span><span class="s2">&gt; </span><span class="s1">graph</span><span class="s2">, </span><span class="s1">V start</span><span class="s2">);</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>
